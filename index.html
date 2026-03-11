@@ -965,7 +965,7 @@ async function doLogin(){
   if(!email||!pass){err.textContent='Please enter email and password.';return}
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   try{
-    G.baseUrl='http://'+srv; G.wsUrl='ws://'+srv;
+    G.baseUrl='https://guardian-server-production.up.railway.app'; G.wsUrl='wss://guardian-server-production.up.railway.app';
     localStorage.setItem('g_server', 'https://guardian-server-production.up.railway.app');
     await G.login(email,pass);
     launchApp();
@@ -985,7 +985,7 @@ async function doRegister(){
   if(pass.length<8){err.textContent='Password must be at least 8 characters.';return}
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   try{
-    G.baseUrl='http://'+srv; G.wsUrl='ws://'+srv;
+    G.baseUrl='https://guardian-server-production.up.railway.app'; G.wsUrl='wss://guardian-server-production.up.railway.app';
     localStorage.setItem('g_server', 'https://guardian-server-production.up.railway.app');
     await G.register(email,pass,name);
     launchApp();
