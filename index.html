@@ -842,7 +842,7 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(108,99,2
 // ═══ GUARDIAN API CLIENT (inline) ════════════════════════════════════════════
 class GuardianAPI {
   constructor(){
-    this.baseUrl = localStorage.getItem('g_server')||'http://guardian-server-production.up.railway.app';
+    this.baseUrl = localStorage.getItem('g_server')||'https://guardian-server-production.up.railway.app';
     this.wsUrl   = this.baseUrl.replace(/^http/,'ws');
     this.token   = localStorage.getItem('g_token');
     this.ws=null; this.wsReady=false; this.queue=[];
@@ -966,7 +966,7 @@ async function doLogin(){
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   try{
     G.baseUrl='http://'+srv; G.wsUrl='ws://'+srv;
-    localStorage.setItem('g_server','http://'+srv);
+    localStorage.setItem('g_server', 'https://guardian-server-production.up.railway.app');
     await G.login(email,pass);
     launchApp();
   }catch(e){err.textContent=e.error||'Connection failed — check server URL.'}
@@ -986,7 +986,7 @@ async function doRegister(){
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   try{
     G.baseUrl='http://'+srv; G.wsUrl='ws://'+srv;
-    localStorage.setItem('g_server','http://'+srv);
+    localStorage.setItem('g_server', 'https://guardian-server-production.up.railway.app');
     await G.register(email,pass,name);
     launchApp();
   }catch(e){err.textContent=e.error||'Registration failed — check server URL.'}
@@ -1392,7 +1392,7 @@ function generateQR(childId,name){
   const qrdiv=document.getElementById('qrcode');
   qrdiv.innerHTML='';
   const code=btoa((localStorage.getItem('g_fid')||'demo')+':'+childId);
-  const server=localStorage.getItem('g_server')||'http://guardian-server-production.up.railway.app';
+  const server=localStorage.getItem('g_server')||'https://guardian-server-production.up.railway.app';
   const url=`guardian://pair?code=${code}&server=${encodeURIComponent(server)}&child=${encodeURIComponent(name)}`;
   document.getElementById('pair-code-str').textContent=url.substring(0,60)+'…';
   try{
@@ -1426,7 +1426,7 @@ function loadSettings(){
 async function pingServer(){
   showToast('Testing connection…','blue');
   try{
-    const r=await fetch((localStorage.getItem('g_server')||'http://guardian-server-production.up.railway.app')+'/health');
+    const r=await fetch((localStorage.getItem('g_server')||'https://guardian-server-production.up.railway.app')+'/health');
     const d=await r.json();
     showToast('✅ Server online — '+d.connectedDevices+' device(s) connected','green');
     document.getElementById('server-status-text').textContent='Connected · '+d.connectedDevices+' devices';
