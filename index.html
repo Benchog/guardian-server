@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Guardian — Family Control Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#0a0b10;--surface:#111219;--s2:#181a24;--s3:#1e2130;
+  --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);
+  --accent:#6c63ff;--a2:#ff6b9d;--green:#00e5a0;--amber:#ffb347;--red:#ff4d6d;--blue:#4da6ff;
+  --text:#e8eaf0;--t2:#8b8fa8;--t3:#555870;
+  --r:16px;--rs:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:-200px;left:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(108,99,255,.12) 0%,transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,157,.08) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* ── AUTH SCREEN ─────────────────────────────────────────────── */
+#auth-screen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);z-index:9000;
+}
+.auth-card{
+  background:var(--surface);border:1px solid var(--b2);border-radius:24px;
+  padding:40px;width:420px;max-width:95vw;
+  box-shadow:0 40px 120px rgba(0,0,0,.6);
+  animation:scaleIn .4s cubic-bezier(.17,.67,.35,1.3);
+}
+@keyframes scaleIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:64px;height:64px;border-radius:18px;font-size:30px;
+  background:linear-gradient(135deg,var(--accent),var(--a2));margin-bottom:14px;
+}
+.auth-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:4px}
+.auth-sub{color:var(--t2);font-size:14px}
+.auth-tabs{display:flex;background:var(--s2);border-radius:12px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:9px;border:none;background:none;color:var(--t2);border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.field input{
+  width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:10px;
+  padding:11px 14px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;
+}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--t3)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.server-field{background:var(--s3);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--t3);display:flex;align-items:center;gap:8px}
+.server-field input{background:none;border:none;color:var(--t2);font-size:12px;flex:1;outline:none;font-family:'DM Sans',sans-serif}
+.auth-btn{
+  width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),var(--a2));
+  border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;
+  cursor:pointer;transition:opacity .2s;font-family:'DM Sans',sans-serif;
+}
+.auth-btn:hover{opacity:.9}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-err{color:var(--red);font-size:13px;text-align:center;margin-top:12px;min-height:20px}
+
+/* ── CONNECTION STATUS BAR ───────────────────────────────────── */
+#conn-bar{
+  position:fixed;top:0;left:0;right:0;z-index:2000;
+  background:rgba(255,77,109,.15);border-bottom:1px solid rgba(255,77,109,.3);
+  padding:8px 20px;font-size:12px;font-weight:600;color:var(--red);
+  display:none;align-items:center;gap:8px;
+}
+#conn-bar.show{display:flex}
+#conn-bar.connected{background:rgba(0,229,160,.1);border-color:rgba(0,229,160,.25);color:var(--green)}
+
+/* ── APP SHELL ───────────────────────────────────────────────── */
+.app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────── */
+.sidebar{
+  width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--b1);
+  display:flex;flex-direction:column;padding:24px 16px;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;
+  transform:translateX(0);transition:transform .3s;
+}
+.sidebar.hidden{transform:translateX(-240px)}
+.logo{display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:32px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--a2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.5px}
+.logo-sub{font-size:11px;color:var(--t3);letter-spacing:.5px}
+.nav-section{margin-bottom:24px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;padding:0 10px;margin-bottom:6px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rs);cursor:pointer;
+  transition:all .2s;color:var(--t2);font-size:14px;font-weight:500;margin-bottom:2px;position:relative;
+}
+.nav-item:hover{background:var(--s2);color:var(--text)}
+.nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.nav-icon{font-size:17px;width:22px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;min-width:18px;text-align:center}
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--b1)}
+.conn-pill{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:12px;font-weight:500}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--t3)}
+.conn-dot.live{background:var(--green);animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.parent-info{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.parent-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--a2));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:white;flex-shrink:0}
+.logout-btn{background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:4px 0;transition:color .2s;font-family:'DM Sans',sans-serif}
+.logout-btn:hover{color:var(--red)}
+
+/* ── MAIN ────────────────────────────────────────────────────── */
+.main{flex:1;margin-left:240px;display:flex;flex-direction:column;transition:margin .3s}
+
+/* ── TOPBAR ──────────────────────────────────────────────────── */
+.topbar{
+  height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  border-bottom:1px solid var(--b1);background:rgba(10,11,16,.85);backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.study-btn,.lock-btn{
+  display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:50px;
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid;
+  font-family:'Syne',sans-serif;
+}
+.study-btn{background:rgba(0,229,160,.1);border-color:rgba(0,229,160,.3);color:var(--green)}
+.study-btn:hover,.study-btn.on{background:var(--green);color:#0a0b10;border-color:var(--green)}
+.study-btn.on{animation:pglow 1.5s infinite}
+@keyframes pglow{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.4)}50%{box-shadow:0 0 0 8px rgba(0,229,160,0)}}
+.lock-btn{background:rgba(255,77,109,.1);border-color:rgba(255,77,109,.3);color:var(--red)}
+.lock-btn:hover,.lock-btn.on{background:var(--red);color:white;border-color:var(--red);animation:rglow 1.5s infinite}
+@keyframes rglow{0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,.4)}50%{box-shadow:0 0 0 8px rgba(255,77,109,0)}}
+.notif-btn{width:38px;height:38px;border-radius:50%;background:var(--s2);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;position:relative;transition:background .2s}
+.notif-btn:hover{background:var(--s3)}
+.notif-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid var(--bg);display:none}
+.notif-dot.show{display:block}
+
+/* ── PAGES ───────────────────────────────────────────────────── */
+.page{display:none;padding:24px;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── GRID ────────────────────────────────────────────────────── */
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* ── CARDS ───────────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--b2)}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.stat-card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;transition:border-color .2s}
+.stat-card:hover{border-color:var(--b2)}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.si-g{background:rgba(0,229,160,.12)}.si-a{background:rgba(255,179,71,.12)}.si-r{background:rgba(255,77,109,.12)}.si-p{background:rgba(108,99,255,.15)}.si-b{background:rgba(77,166,255,.12)}
+.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1;margin-bottom:3px}
+.stat-lbl{font-size:12px;color:var(--t2)}
+.stat-chg{font-size:11px;margin-top:3px}
+
+/* ── CHILD CARDS ─────────────────────────────────────────────── */
+.child-card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;transition:all .25s}
+.child-card:hover{border-color:var(--b2);transform:translateY(-1px)}
+.ch-head{padding:18px 20px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--b1)}
+.ch-av{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid transparent;position:relative;flex-shrink:0}
+.ch-av.online{border-color:var(--green)}.ch-av.offline{border-color:var(--t3);opacity:.6}
+.ch-av-sofia{background:linear-gradient(135deg,#a78bfa,#ec4899)}
+.ch-av-emma{background:linear-gradient(135deg,#60a5fa,#34d399)}
+.online-dot{position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;background:var(--green);border:2px solid var(--surface)}
+.ch-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.ch-status{font-size:12px;color:var(--t2);margin-top:2px;display:flex;align-items:center;gap:5px}
+.dtag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;letter-spacing:.4px}
+.dt-a{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
+.dt-i{background:rgba(77,166,255,.12);color:var(--blue);border:1px solid rgba(77,166,255,.25)}
+.ch-body{padding:16px 20px}
+.time-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.time-row span:first-child{font-size:12px;color:var(--t2)}
+.pbar{height:7px;background:var(--s3);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.pfill{height:100%;border-radius:10px;transition:width .8s cubic-bezier(.17,.67,.35,1)}
+.pf-g{background:var(--green)}.pf-a{background:var(--amber)}.pf-r{background:var(--red)}
+.ch-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.ch-acts{display:flex;gap:7px}
+
+/* ── BUTTONS ─────────────────────────────────────────────────── */
+.btn{flex:1;padding:9px 10px;border-radius:9px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.bp{background:var(--accent);color:white}
+.bd{background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.3)}
+.bg_{background:var(--s2);color:var(--t2)}
+.bg_:hover{background:var(--s3);color:var(--text)}
+.bgreen{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
+.bblue{background:rgba(77,166,255,.12);color:var(--blue);border:1px solid rgba(77,166,255,.25)}
+.btn-wide{width:100%;padding:12px;font-size:14px;border-radius:12px}
+
+/* ── CHIPS ───────────────────────────────────────────────────── */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.cg{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
+.cr{background:rgba(255,77,109,.12);color:var(--red);border:1px solid rgba(255,77,109,.25)}
+.ca{background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.25)}
+.cb{background:rgba(77,166,255,.12);color:var(--blue);border:1px solid rgba(77,166,255,.25)}
+.cp{background:rgba(108,99,255,.15);color:var(--accent);border:1px solid rgba(108,99,255,.3)}
+
+/* ── ACTIVITY FEED ───────────────────────────────────────────── */
+.ai{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--b1);animation:fadeIn .35s ease}
+.ai:last-child{border-bottom:none}
+.ai-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ai-info{flex:1}.ai-name{font-size:13px;font-weight:500;line-height:1.3}.ai-det{font-size:11px;color:var(--t2);margin-top:2px}
+.ai-time{font-size:11px;color:var(--t3);white-space:nowrap;padding-top:2px}
+.ai.alert{border-left:3px solid var(--red);padding-left:10px;margin-left:-1px}
+.badge{font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px}
+.bs{background:rgba(167,139,250,.2);color:#a78bfa}
+.be{background:rgba(96,165,250,.2);color:#60a5fa}
+
+/* ── TOGGLE ──────────────────────────────────────────────────── */
+.toggle{width:40px;height:22px;border-radius:20px;background:var(--s3);border:1px solid var(--b1);cursor:pointer;position:relative;transition:background .25s;flex-shrink:0}
+.toggle.on{background:var(--accent);border-color:var(--accent)}
+.toggle.on-g{background:var(--green);border-color:var(--green)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:2px;left:2px;transition:transform .25s cubic-bezier(.17,.67,.35,1.3)}
+.toggle.on::after,.toggle.on-g::after{transform:translateX(18px)}
+
+/* ── LIVE SCREEN MIRROR ──────────────────────────────────────── */
+.mirror-card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.mirror-head{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.mirror-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--red)}
+.live-dot{width:7px;height:7px;background:var(--red);border-radius:50%;animation:blink 1.2s infinite}
+.mirror-screen{aspect-ratio:9/16;background:#060608;position:relative;overflow:hidden}
+.tab-sim{width:100%;height:100%;position:relative;display:flex;flex-direction:column}
+.tab-bar{height:26px;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:9px;color:rgba(255,255,255,.6)}
+.tab-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;position:relative}
+.app-grid-sim{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;padding:4px}
+.app-sim{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:18px;gap:2px;cursor:pointer;transition:transform .15s;position:relative}
+.app-sim:hover{transform:scale(1.08)}
+.app-sim span{font-size:7px;color:white;font-weight:500;text-align:center}
+.app-sim.blocked::after{content:'🚫';position:absolute;top:-4px;right:-4px;font-size:9px;background:var(--surface);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+.screen-lock-overlay{position:absolute;inset:0;background:rgba(10,11,16,.9);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .3s}
+.screen-lock-overlay.show{opacity:1;pointer-events:all}
+.mirror-ctrls{padding:10px 14px;display:flex;gap:7px;border-top:1px solid var(--b1);background:var(--s2)}
+.mcbtn{flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:3px;transition:all .15s}
+.mc-r{background:rgba(255,77,109,.15);color:var(--red)}.mc-r:hover{background:rgba(255,77,109,.25)}
+.mc-a{background:rgba(255,179,71,.12);color:var(--amber)}.mc-a:hover{background:rgba(255,179,71,.22)}
+.mc-b{background:rgba(77,166,255,.12);color:var(--blue)}.mc-b:hover{background:rgba(77,166,255,.22)}
+.mc-g{background:rgba(0,229,160,.1);color:var(--green)}.mc-g:hover{background:rgba(0,229,160,.2)}
+
+/* ── INPUT ───────────────────────────────────────────────────── */
+.inp{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--t3)}
+.inp-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.inp-row .inp{flex:1}
+.add-btn{padding:10px 16px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.add-btn:hover{background:#7c74ff}
+.add-btn.green{background:var(--green);color:#0a0b10}
+
+/* ── DOMAIN ITEMS ────────────────────────────────────────────── */
+.domain-item{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--s2);border-radius:8px;margin-bottom:6px;font-size:13px}
+.domain-item.blocked{border-left:3px solid var(--red)}
+.domain-item.allowed{border-left:3px solid var(--green)}
+.domain-rm{color:var(--t3);cursor:pointer;font-size:17px;padding:0 3px;margin-left:auto;transition:color .2s}
+.domain-rm:hover{color:var(--red)}
+
+/* ── TABS ────────────────────────────────────────────────────── */
+.tabs{display:flex;gap:3px;background:var(--s2);padding:4px;border-radius:12px;margin-bottom:18px}
+.tab{flex:1;padding:8px 14px;border-radius:9px;border:none;background:none;color:var(--t2);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+/* ── APP LIST ────────────────────────────────────────────────── */
+.app-li{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--b1)}
+.app-li:last-child{border-bottom:none}
+.app-em{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.app-inf{flex:1}.app-nm{font-size:13px;font-weight:500}.app-cat{font-size:11px;color:var(--t3);margin-top:1px}
+
+/* ── FILTER CATS ─────────────────────────────────────────────── */
+.fcat{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--rs);background:var(--s2);margin-bottom:7px;cursor:pointer;transition:all .2s}
+.fcat:hover{background:var(--s3)}
+.fcat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.fcat-name{flex:1;font-size:13px;font-weight:500}
+.fcat-count{font-size:11px;color:var(--t3);margin-right:8px}
+
+/* ── SCHEDULE ────────────────────────────────────────────────── */
+.sch-day{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--b1)}
+.sch-day:last-child{border-bottom:none}
+.day-lbl{width:36px;font-size:12px;font-weight:600;color:var(--t2)}
+.tbar{flex:1;height:7px;background:var(--s3);border-radius:10px;position:relative;overflow:hidden}
+.tblock{position:absolute;height:100%;border-radius:10px;top:0}
+.t-study{background:var(--accent)}.t-free{background:var(--green)}.t-block{background:var(--red)}
+.t-label{font-size:11px;color:var(--t2);width:90px;text-align:right}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:var(--s3);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(108,99,255,.2);transition:box-shadow .2s}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(108,99,255,.3)}
+
+/* ── CHART ───────────────────────────────────────────────────── */
+.chart-bars{display:flex;align-items:flex-end;gap:7px;height:110px;padding:0 4px}
+.cbar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
+.cbar-inner{flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end}
+.cbar{width:100%;border-radius:5px 5px 0 0;transition:height .6s cubic-bezier(.17,.67,.35,1);cursor:pointer}
+.cbar:hover{filter:brightness(1.2)}
+.cday{font-size:10px;color:var(--t3)}
+
+/* ── QR PANEL ────────────────────────────────────────────────── */
+.qr-panel{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:20px;text-align:center}
+#qrcode{display:flex;justify-content:center;margin:14px 0}
+#qrcode img,#qrcode canvas{border-radius:12px}
+.qr-code-str{font-family:monospace;font-size:11px;background:var(--s3);padding:6px 10px;border-radius:7px;color:var(--t2);margin-top:8px;word-break:break-all}
+
+/* ── SECTION HEADER ──────────────────────────────────────────── */
+.sec-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.sec-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.sec-sub{font-size:13px;color:var(--t2);margin-top:3px}
+
+/* ── ALERT BANNER ────────────────────────────────────────────── */
+.alert-banner{background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.25);border-radius:var(--rs);padding:13px 16px;display:flex;align-items:center;gap:11px;margin-bottom:18px;animation:fadeIn .3s ease}
+.alert-dismiss{cursor:pointer;color:var(--t3);padding:4px;margin-left:auto;font-size:18px}
+.alert-dismiss:hover{color:var(--red)}
+
+/* ── NOTIFICATION POPUP ──────────────────────────────────────── */
+#notif-popup{
+  position:fixed;bottom:24px;right:24px;background:var(--surface);
+  border:1px solid var(--b2);border-left:4px solid var(--red);
+  border-radius:var(--rs);padding:14px 16px;width:300px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:9999;
+  display:none;gap:11px;align-items:flex-start;
+}
+#notif-popup.show{display:flex;animation:slideIn .4s cubic-bezier(.17,.67,.35,1.3)}
+@keyframes slideIn{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
+.np-body{flex:1}.np-title{font-weight:600;font-size:13px;margin-bottom:2px}
+.np-text{font-size:11px;color:var(--t2);line-height:1.4}
+.np-acts{display:flex;gap:7px;margin-top:9px}
+.np-allow{flex:1;padding:6px;background:rgba(0,229,160,.1);color:var(--green);border:1px solid rgba(0,229,160,.25);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.np-block{flex:1;padding:6px;background:rgba(255,77,109,.12);color:var(--red);border:1px solid rgba(255,77,109,.25);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.np-close{color:var(--t3);cursor:pointer;font-size:18px;flex-shrink:0}
+
+/* ── MODAL ───────────────────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--b2);border-radius:20px;padding:28px;width:440px;max-width:92vw;transform:scale(.9);transition:transform .25s cubic-bezier(.17,.67,.67,.35,1.3);box-shadow:0 40px 100px rgba(0,0,0,.6)}
+.modal-bg.open .modal{transform:scale(1)}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px}
+.modal-sub{color:var(--t2);font-size:13px;margin-bottom:22px}
+.dur-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+
+/* ── SCROLLBAR ───────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s3);border-radius:10px}
+
+/* ── LOADING ─────────────────────────────────────────────────── */
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.skeleton{background:linear-gradient(90deg,var(--s2) 25%,var(--s3) 50%,var(--s2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;height:20px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────── */
+.empty{text-align:center;padding:32px 20px;color:var(--t3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH SCREEN ═══════════════════════════════════════════════════════ -->
+<div id="auth-screen">
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="auth-logo-icon">🛡️</div>
+    <div class="auth-title">Guardian</div>
+    <div class="auth-sub">Family Control Center</div>
+  </div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchAuthTab('login',this)">Sign In</button>
+    <button class="auth-tab" onclick="switchAuthTab('register',this)">Create Account</button>
+  </div>
+
+  <!-- Login form -->
+  <div id="form-login">
+    <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="mom@family.com" autocomplete="email"/></div>
+    <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"/></div>
+    <div class="server-field">🌐 <input id="l-server" placeholder="Server URL (e.g. guardian.yourdomain.com)" value="guardian-server-production.up.railway.app"/></div>
+    <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="auth-err" id="login-err"></div>
+    <div style="text-align:center;margin-top:14px">
+      <button onclick="demoMode()" style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
+        👀 Try demo (no server needed)
+      </button>
+    </div>
+  </div>
+
+  <!-- Register form -->
+  <div id="form-register" style="display:none">
+    <div class="field-row">
+      <div class="field"><label>Your Name</label><input type="text" id="r-name" placeholder="Mom"/></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="mom@family.com"/></div>
+    <div class="field"><label>Password</label><input type="password" id="r-pass" placeholder="Create password (8+ chars)"/></div>
+    <div class="server-field">🌐 <input id="r-server" placeholder="Your server URL" value="guardian-server-production.up.railway.app"/></div>
+    <button class="auth-btn" id="register-btn" onclick="doRegister()">Create Account</button>
+    <div class="auth-err" id="register-err"></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ CONNECTION BAR ═════════════════════════════════════════════════════ -->
+<div id="conn-bar">
+  <span id="conn-bar-icon">⚠️</span>
+  <span id="conn-bar-text">Connecting to Guardian server…</span>
+</div>
+
+<!-- ═══ APP ════════════════════════════════════════════════════════════════ -->
+<div class="app" id="app-shell" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🛡️</div>
+      <div><div class="logo-text">Guardian</div><div class="logo-sub">Family Control Center</div></div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</div>
+      <div class="nav-item" onclick="nav('liveview',this)"><span class="nav-icon">📱</span>Live View<span class="nav-badge" id="alert-badge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="nav('activity',this)"><span class="nav-icon">⚡</span>Activity Feed</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Controls</div>
+      <div class="nav-item" onclick="nav('apps',this)"><span class="nav-icon">📦</span>App Manager</div>
+      <div class="nav-item" onclick="nav('webfilter',this)"><span class="nav-icon">🌐</span>Web Filter</div>
+      <div class="nav-item" onclick="nav('schedule',this)"><span class="nav-icon">⏰</span>Schedule & Limits</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Insights</div>
+      <div class="nav-item" onclick="nav('reports',this)"><span class="nav-icon">📈</span>Reports</div>
+      <div class="nav-item" onclick="nav('pairing',this)"><span class="nav-icon">🔗</span>Add Device</div>
+      <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="conn-pill"><div class="conn-dot" id="ws-dot"></div><span id="ws-label" style="font-size:12px;color:var(--t2)">Connecting…</span></div>
+      <div class="parent-info">
+        <div class="parent-av" id="parent-av">M</div>
+        <div><div style="font-size:13px;font-weight:500" id="parent-name">Parent</div>
+        <button class="logout-btn" onclick="Guardian.logout()">Sign out</button></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Overview Dashboard</div>
+      <div class="topbar-right">
+        <button class="study-btn" id="study-btn" onclick="toggleStudyAll()">📚 Study Mode <span id="study-st">OFF</span></button>
+        <button class="lock-btn" id="lock-btn" onclick="emergencyLockAll()">🔒 Lock All</button>
+        <div class="notif-btn" onclick="toggleNotifPanel()">🔔<div class="notif-dot" id="notif-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="page active" id="page-dashboard">
+      <div id="alert-banners"></div>
+      <div class="g4" style="margin-bottom:18px" id="stat-cards">
+        <div class="stat-card"><div class="stat-icon si-g">📱</div><div><div class="stat-val" style="color:var(--green)" id="s-online">–</div><div class="stat-lbl">Devices Online</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-a">⏱️</div><div><div class="stat-val" style="color:var(--amber)" id="s-time">–</div><div class="stat-lbl">Screen Time Today</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-r">🚫</div><div><div class="stat-val" style="color:var(--red)" id="s-blocks">–</div><div class="stat-lbl">Blocks Today</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-p">📚</div><div><div class="stat-val" style="color:var(--accent)" id="s-study">–</div><div class="stat-lbl">Study Sessions</div></div></div>
+      </div>
+      <div class="g2" style="margin-bottom:18px" id="child-cards-area">
+        <div class="skeleton" style="height:240px;border-radius:var(--r)"></div>
+        <div class="skeleton" style="height:240px;border-radius:var(--r)"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Live Activity <span class="live-badge"><span class="live-dot"></span>LIVE</span></div>
+        <div id="activity-feed"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No activity yet — devices will appear here when connected</div></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ LIVE VIEW ═══ -->
+    <div class="page" id="page-liveview">
+      <div class="g2" id="mirror-area">
+        <div class="skeleton" style="height:500px;border-radius:var(--r)"></div>
+        <div class="skeleton" style="height:500px;border-radius:var(--r)"></div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-title">⚡ Quick Remote Actions</div>
+        <div class="g4">
+          <button class="btn bd btn-wide" onclick="emergencyLockAll()">🔒 Lock All Devices</button>
+          <button class="btn bgreen btn-wide" onclick="toggleStudyAll()">📚 Toggle Study Mode</button>
+          <button class="btn bg_ btn-wide" onclick="screenshotAll()">📸 Screenshot Both</button>
+          <button class="btn bblue btn-wide" onclick="messageAll()">💬 Message Both Kids</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ACTIVITY ═══ -->
+    <div class="page" id="page-activity">
+      <div class="g2">
+        <div>
+          <div class="tabs">
+            <button class="tab active" onclick="filterFeed('all',this)">All</button>
+            <button class="tab" onclick="filterFeed('blocks',this)">Alerts Only</button>
+            <button class="tab" onclick="filterFeed('study',this)">Study</button>
+          </div>
+          <div id="full-activity-list"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Loading activity…</div></div></div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">📊 Today at a Glance</div>
+            <div id="daily-summary"><div class="skeleton" style="height:120px"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🔔 Recent Alerts</div>
+            <div id="alert-list"><div class="empty"><div class="empty-text" style="font-size:13px;padding:12px 0">No alerts today 🎉</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ APP MANAGER ═══ -->
+    <div class="page" id="page-apps">
+      <div class="tabs" id="app-child-tabs">
+        <button class="tab active" onclick="showChildApps(0,this)">Sofia's Apps</button>
+        <button class="tab" onclick="showChildApps(1,this)">Emma's Apps</button>
+      </div>
+      <div id="apps-content">
+        <div class="g2">
+          <div class="card"><div class="card-title">🎮 Games & Entertainment</div><div id="app-list-games"><div class="skeleton" style="height:200px"></div></div></div>
+          <div class="card"><div class="card-title">📚 Educational Apps</div><div id="app-list-edu"><div class="skeleton" style="height:200px"></div></div></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <div class="card-title">📚 Study Mode — Allowed Apps Only</div>
+          <div style="color:var(--t2);font-size:13px;margin-bottom:12px">When Study Mode activates, only these apps are accessible:</div>
+          <div id="study-allowlist" style="display:flex;flex-wrap:wrap;gap:7px">
+            <span class="chip cg">📖 Khan Academy</span><span class="chip cg">🔢 Prodigy Math</span>
+            <span class="chip cg">🌍 Duolingo</span><span class="chip cb" style="cursor:pointer" onclick="addStudyApp()">+ Add App</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ WEB FILTER ═══ -->
+    <div class="page" id="page-webfilter">
+      <div class="g2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">📂 Category Filters</div>
+            <div id="cat-filters">
+              <div class="fcat"><div class="fcat-icon" style="background:rgba(255,77,109,.12)">🔞</div><div class="fcat-name">Adult Content</div><div class="fcat-count">Always blocked</div><div class="toggle on" style="background:var(--red);border-color:var(--red)"></div></div>
+              <div class="fcat"><div class="fcat-icon" style="background:rgba(255,77,109,.12)">⚔️</div><div class="fcat-name">Violence & Gore</div><div class="fcat-count">Always blocked</div><div class="toggle on" style="background:var(--red);border-color:var(--red)"></div></div>
+              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(255,179,71,.12)">🎬</div><div class="fcat-name">Entertainment / Video</div><div class="fcat-count">Study blocked</div><div class="toggle on" id="fc-ent"></div></div>
+              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(255,179,71,.12)">🎮</div><div class="fcat-name">Gaming Sites</div><div class="fcat-count">After 6PM</div><div class="toggle on" id="fc-game"></div></div>
+              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(255,77,109,.12)">💬</div><div class="fcat-name">Social Media</div><div class="fcat-count">Always blocked</div><div class="toggle on" id="fc-social"></div></div>
+              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(0,229,160,.12)">📚</div><div class="fcat-name">Education</div><div class="fcat-count">Always allowed</div><div class="toggle on-g" id="fc-edu"></div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-title">🚫 Custom Blocked Sites</div>
+            <div class="inp-row">
+              <input class="inp" id="block-inp" placeholder="e.g. instagram.com" onkeydown="if(event.key==='Enter')addBlock()"/>
+              <button class="add-btn" onclick="addBlock()">Block</button>
+            </div>
+            <div id="blocked-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">✅ Always Allowed Sites</div>
+            <div class="inp-row">
+              <input class="inp" id="allow-inp" placeholder="e.g. pbskids.org" onkeydown="if(event.key==='Enter')addAllow()"/>
+              <button class="add-btn green" onclick="addAllow()">Allow</button>
+            </div>
+            <div id="allowed-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SCHEDULE ═══ -->
+    <div class="page" id="page-schedule">
+      <div class="g2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">⏱️ Daily Screen Time Limits</div>
+            <div style="margin-bottom:22px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div><div style="font-size:13px;font-weight:600">🧒 Sofia — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
+                <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)" id="sofia-lim">3h 0m</div>
+              </div>
+              <input type="range" min="0.5" max="8" value="3" step="0.5" oninput="updateLim('sofia',this.value)"/>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3);margin-top:3px"><span>30min</span><span>8h</span></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div><div style="font-size:13px;font-weight:600">🧒 Emma — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
+                <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)" id="emma-lim">3h 0m</div>
+              </div>
+              <input type="range" min="0.5" max="8" value="3" step="0.5" oninput="updateLim('emma',this.value)"/>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📚 Study Schedule</div>
+            <div id="study-schedule">
+              <div class="sch-day"><div class="day-lbl">Mon</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
+              <div class="sch-day"><div class="day-lbl">Tue</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
+              <div class="sch-day"><div class="day-lbl">Wed</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
+              <div class="sch-day"><div class="day-lbl">Thu</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
+              <div class="sch-day"><div class="day-lbl">Fri</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:17%"></div></div><div class="t-label">3:30 – 4:30 PM</div></div>
+              <div class="sch-day"><div class="day-lbl">Sat</div><div class="tbar"><div class="tblock t-free" style="left:5%;width:75%"></div></div><div class="t-label">Free day</div></div>
+              <div class="sch-day"><div class="day-lbl">Sun</div><div class="tbar"><div class="tblock t-free" style="left:5%;width:75%"></div></div><div class="t-label">Free day</div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-title">🌙 Bedtime Lock</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Auto Bedtime Lock</div><div style="font-size:11px;color:var(--t2)">Locks tablets at bedtime every night</div></div>
+                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+                <div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center">
+                  <div style="font-size:11px;color:var(--t2);margin-bottom:4px">Bedtime (Lock)</div>
+                  <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent)">8:30 PM</div>
+                  <div style="font-size:11px;color:var(--t3)">Weekdays</div>
+                </div>
+                <div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center">
+                  <div style="font-size:11px;color:var(--t2);margin-bottom:4px">Wake Time</div>
+                  <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--green)">7:00 AM</div>
+                  <div style="font-size:11px;color:var(--t3)">Next day</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎯 Smart Rules</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Games only after homework</div><div style="font-size:11px;color:var(--t2)">Study mode must complete before games unlock</div></div>
+                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Weekend +1hr bonus</div><div style="font-size:11px;color:var(--t2)">Automatically extends limit on weekends</div></div>
+                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Alert at 80% screen time</div><div style="font-size:11px;color:var(--t2)">Push notification when limit is almost reached</div></div>
+                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:500">Lock after 3 block violations</div><div style="font-size:11px;color:var(--t2)">Auto-lock for 10 min after repeated attempts</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REPORTS ═══ -->
+    <div class="page" id="page-reports">
+      <div class="g4" style="margin-bottom:18px">
+        <div class="stat-card"><div class="stat-icon si-g">⏱️</div><div><div class="stat-val" style="color:var(--green)" id="r-total">–</div><div class="stat-lbl">Total This Week</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-p">📚</div><div><div class="stat-val" style="color:var(--accent)" id="r-study">–</div><div class="stat-lbl">Study Time</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-r">🚫</div><div><div class="stat-val" style="color:var(--red)" id="r-blocks">–</div><div class="stat-lbl">Blocks This Week</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-a">🏆</div><div><div class="stat-val" style="color:var(--amber)" id="r-days">–</div><div class="stat-lbl">Study Days Met</div></div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">📊 Screen Time — Last 7 Days</div>
+          <div class="chart-bars" id="week-chart">
+            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:65%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Mon</div></div>
+            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:80%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Tue</div></div>
+            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:50%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Wed</div></div>
+            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:90%;background:linear-gradient(180deg,var(--amber),rgba(255,179,71,.3))"></div></div><div class="cday">Thu</div></div>
+            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:60%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Fri</div></div>
+            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:100%;background:linear-gradient(180deg,var(--red),rgba(255,77,109,.3))"></div></div><div class="cday">Sat</div></div>
+            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:75%;background:linear-gradient(180deg,var(--amber),rgba(255,179,71,.3))"></div></div><div class="cday">Sun</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📱 Top Apps This Week</div>
+          <div id="top-apps"><div class="skeleton" style="height:180px"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAIRING ═══ -->
+    <div class="page" id="page-pairing">
+      <div class="sec-head"><div><div class="sec-title">🔗 Add a New Device</div><div class="sec-sub">Pair a child's tablet to Guardian in 30 seconds</div></div></div>
+      <div class="g2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Step 1 — Choose Child</div>
+            <div id="pair-child-select" style="display:flex;flex-direction:column;gap:9px">
+              <div class="skeleton" style="height:60px;border-radius:12px"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Step 2 — Install Guardian on Tablet</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="background:var(--s2);border-radius:10px;padding:14px">
+                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--green)">📱 Android (Sofia's Tablet)</div>
+                <div style="font-size:12px;color:var(--t2);line-height:1.6">1. Download <strong>Guardian Child Agent APK</strong> from your server<br/>2. Enable "Install from unknown sources" in Settings<br/>3. Install and open the app<br/>4. Scan the QR code below</div>
+              </div>
+              <div style="background:var(--s2);border-radius:10px;padding:14px">
+                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">🍎 iPad (Emma's iPad)</div>
+                <div style="font-size:12px;color:var(--t2);line-height:1.6">1. Install <strong>Guardian</strong> from the App Store<br/>2. Open the app<br/>3. Scan the QR code below<br/>4. Approve FamilyControls permission</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Step 3 — Scan QR Code on Tablet</div>
+            <div class="qr-panel">
+              <div style="font-size:13px;color:var(--t2);margin-bottom:8px">Point the child's tablet camera at this code</div>
+              <div id="qrcode"></div>
+              <div style="font-size:11px;color:var(--t3);margin-top:8px" id="pair-code-str">Select a child above to generate QR code</div>
+              <button class="btn bp btn-wide" style="margin-top:16px" onclick="refreshQR()">🔄 Refresh QR Code</button>
+            </div>
+            <div style="margin-top:16px;background:var(--s2);border-radius:10px;padding:14px">
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--t2)">WHAT HAPPENS NEXT</div>
+              <div style="font-size:12px;color:var(--t3);line-height:1.8">✅ Tablet scans QR code<br/>✅ Device appears in your dashboard<br/>✅ Guardian app requests required permissions<br/>✅ Rules sync automatically<br/>✅ Live monitoring begins immediately</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="page" id="page-settings">
+      <div class="g2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">👨‍👩‍👧 Child Profiles</div>
+            <div id="profile-list" style="display:flex;flex-direction:column;gap:11px">
+              <div class="skeleton" style="height:70px;border-radius:12px"></div>
+            </div>
+            <button class="btn bp btn-wide" style="margin-top:14px" onclick="addChildModal()">+ Add Child Profile</button>
+          </div>
+          <div class="card">
+            <div class="card-title">🔔 Notifications</div>
+            <div style="display:flex;flex-direction:column;gap:13px">
+              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Blocked site alerts</div><div style="font-size:11px;color:var(--t2)">Real-time push notification</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Screen time warnings</div><div style="font-size:11px;color:var(--t2)">When 80% of limit reached</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Study session completed</div><div style="font-size:11px;color:var(--t2)">Notify when kids finish studying</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Device offline alerts</div><div style="font-size:11px;color:var(--t2)">When a tablet disconnects</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-title">🔐 Security</div>
+            <div style="display:flex;flex-direction:column;gap:13px">
+              <div style="background:var(--s2);border-radius:10px;padding:13px">
+                <div style="font-size:13px;font-weight:600;margin-bottom:5px">Parent PIN</div>
+                <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Kids need this to uninstall Guardian</div>
+                <button class="btn bg_ btn-wide" style="font-size:12px;padding:8px">Change PIN</button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Require PIN for settings</div><div style="font-size:11px;color:var(--t2)">Prevent kids from changing rules</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Tamper detection</div><div style="font-size:11px;color:var(--t2)">Alert if Guardian is bypassed</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🖥️ Server Connection</div>
+            <div style="background:var(--s2);border-radius:10px;padding:13px;margin-bottom:12px">
+              <div style="font-size:11px;color:var(--t3);margin-bottom:4px">CONNECTED TO</div>
+              <div style="font-size:14px;font-weight:500;font-family:monospace" id="server-display">–</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:4px" id="server-status-text">Checking…</div>
+            </div>
+            <button class="btn bg_ btn-wide" style="font-size:12px;padding:9px" onclick="pingServer()">🔄 Test Connection</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- NOTIFICATION POPUP -->
+<div id="notif-popup">
+  <div style="font-size:22px" id="np-icon">⚠️</div>
+  <div class="np-body">
+    <div class="np-title" id="np-title">Alert</div>
+    <div class="np-text" id="np-text"></div>
+    <div class="np-acts">
+      <button class="np-allow" onclick="dismissNotif()">Dismiss</button>
+      <button class="np-block" id="np-action-btn">Lock Device</button>
+    </div>
+  </div>
+  <div class="np-close" onclick="dismissNotif()">×</div>
+</div>
+
+<!-- LOCK MODAL -->
+<div class="modal-bg" id="lock-modal">
+  <div class="modal">
+    <div style="font-size:48px;text-align:center;margin-bottom:12px">🔒</div>
+    <div class="modal-title" style="text-align:center" id="lock-modal-title">Lock Device</div>
+    <div class="modal-sub" style="text-align:center">Choose lock duration. Device will auto-unlock after time expires.</div>
+    <div class="dur-grid">
+      <button class="btn bg_" style="padding:13px" onclick="doLock(10)">⏱ 10 Minutes</button>
+      <button class="btn bg_" style="padding:13px" onclick="doLock(30)">⏱ 30 Minutes</button>
+      <button class="btn bg_" style="padding:13px" onclick="doLock(60)">⏱ 1 Hour</button>
+      <button class="btn bd" style="padding:13px" onclick="doLock(0)">🔒 Until I Unlock</button>
+    </div>
+    <button class="btn bg_ btn-wide" style="margin-top:9px" onclick="closeModal('lock-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- MESSAGE MODAL -->
+<div class="modal-bg" id="msg-modal">
+  <div class="modal">
+    <div class="modal-title">💬 Send Message to <span id="msg-target-name">Child</span></div>
+    <div class="modal-sub">Message will appear as a notification on their tablet.</div>
+    <div class="field" style="margin-bottom:16px">
+      <label>Your message</label>
+      <input class="inp" id="msg-text" placeholder="e.g. Dinner is ready! Come down 😊" style="width:100%" onkeydown="if(event.key==='Enter')doSendMsg()"/>
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btn bp" style="flex:2;padding:12px" onclick="doSendMsg()">📤 Send Message</button>
+      <button class="btn bg_" style="flex:1;padding:12px" onclick="closeModal('msg-modal')">Cancel</button>
+    </div>
+    <div style="margin-top:12px">
+      <div style="font-size:11px;color:var(--t3);margin-bottom:6px">QUICK MESSAGES</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('Dinner time! 🍽️')">Dinner time!</button>
+        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('Time to study 📚')">Time to study</button>
+        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('5 more minutes then put it down 🙏')">5 more minutes</button>
+        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('Bedtime soon! 🌙')">Bedtime soon</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ GUARDIAN API CLIENT (inline) ════════════════════════════════════════════
+class GuardianAPI {
+  constructor(){
+    this.baseUrl = localStorage.getItem('g_server')||'http://guardian-server-production.up.railway.app';
+    this.wsUrl   = this.baseUrl.replace(/^http/,'ws');
+    this.token   = localStorage.getItem('g_token');
+    this.ws=null; this.wsReady=false; this.queue=[];
+    this.handlers={}; this.reconnectDelay=2000;
+    if(this.token) this._initWS();
+  }
+  async register(email,password,name){
+    const d=await this._post('/api/auth/register',{email,password,name});
+    this._save(d); return d;
+  }
+  async login(email,password){
+    const d=await this._post('/api/auth/login',{email,password}); this._save(d); return d;
+  }
+  logout(){localStorage.removeItem('g_token');localStorage.removeItem('g_server');this.token=null;this.ws?.close();location.reload()}
+  get isLoggedIn(){return!!this.token}
+
+  async getChildren(){return this._get('/api/children')}
+  async addChild(name,age,grade){return this._post('/api/children',{name,age,grade})}
+  async getActivity(opts={}){const q=new URLSearchParams(opts).toString();return this._get('/api/activity?'+q)}
+  async getReport(){return this._get('/api/reports/weekly')}
+  async getApps(id){return this._get('/api/children/'+id+'/apps')}
+  async setAppRule(id,r){return this._post('/api/children/'+id+'/apps',r)}
+  async getWebRules(){return this._get('/api/website-rules')}
+  async addWebRule(domain,type){return this._post('/api/website-rules',{domain,ruleType:type})}
+  async delWebRule(id){return this._del('/api/website-rules/'+id)}
+
+  lockDevice(childId,mins){this._ws({type:'LOCK_DEVICE',childId,durationMinutes:mins||undefined})}
+  unlockDevice(childId){this._ws({type:'UNLOCK_DEVICE',childId})}
+  studyMode(childId,on){this._ws({type:'SET_STUDY_MODE',childId,active:on})}
+  screenshot(childId){this._ws({type:'REQUEST_SCREENSHOT',childId})}
+  message(childId,msg){this._ws({type:'SEND_MESSAGE',childId,message:msg})}
+  lockAll(){this._ws({type:'LOCK_ALL'})}
+
+  on(t,cb){(this.handlers[t]=this.handlers[t]||[]).push(cb);return()=>{this.handlers[t]=this.handlers[t].filter(x=>x!==cb)}}
+  _emit(t,d){(this.handlers[t]||[]).forEach(f=>f(d));(this.handlers['*']||[]).forEach(f=>f({type:t,...d}))}
+
+  _initWS(){
+    if(!this.token)return;
+    this.ws=new WebSocket(this.wsUrl.replace('http','ws'));
+    this.ws.onopen=()=>{
+      this.wsReady=true; this.reconnectDelay=2000;
+      this._ws({type:'AUTH',token:this.token});
+      this.queue.forEach(m=>this.ws.send(m)); this.queue=[];
+      this._emit('WS_STATUS',{connected:true});
+    };
+    this.ws.onmessage=e=>{try{this._handle(JSON.parse(e.data))}catch(x){}};
+    this.ws.onclose=()=>{
+      this.wsReady=false;
+      this._emit('WS_STATUS',{connected:false});
+      setTimeout(()=>this._initWS(),this.reconnectDelay);
+      this.reconnectDelay=Math.min(this.reconnectDelay*1.5,30000);
+    };
+    this.ws.onerror=e=>console.error('WS err',e);
+  }
+  _handle(m){
+    if(m.type==='STATE_SNAPSHOT') this._emit('SNAPSHOT',m);
+    else if(m.type==='DEVICE_HEARTBEAT') this._emit('HEARTBEAT',m);
+    else if(m.type==='ACTIVITY_EVENT'){this._emit('ACTIVITY',m);if(m.wasBlocked)this._emit('ALERT',m)}
+    else if(m.type==='SCREENSHOT') this._emit('SCREENSHOT',m);
+    else if(m.type==='DEVICE_ONLINE'||m.type==='DEVICE_OFFLINE') this._emit('DEVICE_STATUS',m);
+    else if(m.type==='AUTH_FAILED'){this.logout()}
+  }
+  _ws(o){const s=JSON.stringify(o);this.wsReady?this.ws.send(s):this.queue.push(s)}
+  async _get(p){const r=await fetch(this.baseUrl+p,{headers:this._h()});if(!r.ok)throw await r.json();return r.json()}
+  async _post(p,b){const r=await fetch(this.baseUrl+p,{method:'POST',headers:this._h(),body:JSON.stringify(b)});if(!r.ok)throw await r.json();return r.json()}
+  async _del(p){const r=await fetch(this.baseUrl+p,{method:'DELETE',headers:this._h()});if(!r.ok)throw await r.json();return r.json()}
+  _h(){const h={'Content-Type':'application/json'};if(this.token)h['Authorization']='Bearer '+this.token;return h}
+  _save({token,familyId}){this.token=token;localStorage.setItem('g_token',token);if(familyId)localStorage.setItem('g_fid',familyId);this._initWS()}
+}
+
+// ═══ INIT ════════════════════════════════════════════════════════════════════
+const G = new GuardianAPI();
+let children = [];
+let studyAll = false;
+let lockTarget = null;
+let msgTarget = null;
+let alertCount = 0;
+let demoModeOn = false;
+
+// ── Demo seed data ────────────────────────────────────────────────────────────
+const DEMO_CHILDREN = [
+  {id:'c1',name:'Sofia',age:9,platform:'Android',online_devices:1,today_minutes:130,daily_limit_minutes:180,study_mode_active:0,device_locked:0,blocks_today:3,grade:'4',avatar:'ch-av-sofia',dtag:'dt-a',dtagLabel:'Android',status:'🎮 Playing Minecraft',statusClass:'ca'},
+  {id:'c2',name:'Emma', age:7,platform:'iOS',   online_devices:1,today_minutes:92, daily_limit_minutes:180,study_mode_active:1,device_locked:0,blocks_today:1,grade:'2',avatar:'ch-av-emma', dtag:'dt-i',dtagLabel:'iPad',   status:'📖 Reading App',   statusClass:'cb'}
+];
+const DEMO_ACTIVITY = [
+  {childName:'Sofia',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'Tried to open YouTube',detail:'Blocked by web filter',wasBlocked:true,time:'2m ago'},
+  {childName:'Emma', badge:'be',icon:'📖',bg:'rgba(0,229,160,.1)', name:'Opened Khan Academy Kids',detail:'Educational · Allowed',wasBlocked:false,time:'8m ago'},
+  {childName:'Sofia',badge:'bs',icon:'🎮',bg:'rgba(255,179,71,.12)',name:'Minecraft — session started',detail:'Game · 45min today',wasBlocked:false,time:'45m ago'},
+  {childName:'Sofia',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'TikTok blocked (3 attempts)',detail:'Always blocked',wasBlocked:true,time:'1h ago'},
+  {childName:'Emma', badge:'be',icon:'🌐',bg:'rgba(77,166,255,.1)', name:'Visited pbskids.org',detail:'Educational site',wasBlocked:false,time:'2h ago'},
+];
+const DEMO_APPS_GAMES = [
+  {emoji:'🎮',bg:'rgba(255,200,0,.15)',name:'Minecraft',cat:'Games · 1h 20m today',on:true},
+  {emoji:'📺',bg:'rgba(255,100,100,.12)',name:'YouTube Kids',cat:'Video · Blocked',on:false},
+  {emoji:'🎵',bg:'rgba(200,100,255,.15)',name:'TikTok',cat:'Social · Always blocked',on:false},
+  {emoji:'🎰',bg:'rgba(255,150,0,.15)',name:'Roblox',cat:'Games · Blocked after 5PM',on:false},
+];
+const DEMO_APPS_EDU = [
+  {emoji:'📖',bg:'rgba(0,229,160,.12)',name:'Khan Academy Kids',cat:'Education · Always allowed',on:true,green:true},
+  {emoji:'🔢',bg:'rgba(77,166,255,.12)',name:'Prodigy Math',cat:'Education · 35m today',on:true,green:true},
+  {emoji:'🎨',bg:'rgba(255,179,71,.12)',name:'Drawing & Art',cat:'Creative · Allowed',on:true,green:true},
+  {emoji:'🌍',bg:'rgba(108,99,255,.15)',name:'Duolingo ABC',cat:'Language · Allowed',on:true,green:true},
+];
+
+// ═══ AUTH ════════════════════════════════════════════════════════════════════
+function switchAuthTab(mode,el){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('form-login').style.display = mode==='login'?'':'none';
+  document.getElementById('form-register').style.display = mode==='register'?'':'none';
+}
+
+async function doLogin(){
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-err');
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const srv=document.getElementById('l-server').value.trim();
+  err.textContent='';
+  if(!email||!pass){err.textContent='Please enter email and password.';return}
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    G.baseUrl='http://'+srv; G.wsUrl='ws://'+srv;
+    localStorage.setItem('g_server','http://'+srv);
+    await G.login(email,pass);
+    launchApp();
+  }catch(e){err.textContent=e.error||'Connection failed — check server URL.'}
+  btn.disabled=false; btn.textContent='Sign In';
+}
+
+async function doRegister(){
+  const btn=document.getElementById('register-btn');
+  const err=document.getElementById('register-err');
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const srv=document.getElementById('r-server').value.trim();
+  err.textContent='';
+  if(!name||!email||!pass){err.textContent='Please fill all fields.';return}
+  if(pass.length<8){err.textContent='Password must be at least 8 characters.';return}
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    G.baseUrl='http://'+srv; G.wsUrl='ws://'+srv;
+    localStorage.setItem('g_server','http://'+srv);
+    await G.register(email,pass,name);
+    launchApp();
+  }catch(e){err.textContent=e.error||'Registration failed — check server URL.'}
+  btn.disabled=false; btn.textContent='Create Account';
+}
+
+function demoMode(){
+  demoModeOn=true;
+  children=DEMO_CHILDREN;
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-shell').style.display='flex';
+  document.getElementById('parent-name').textContent='Mom (Demo)';
+  document.getElementById('parent-av').textContent='M';
+  document.getElementById('server-display').textContent='Demo Mode';
+  setConnStatus(true);
+  loadDashboard();
+  loadActivity();
+  loadApps();
+  loadWebFilter();
+  loadReports();
+  loadPairing();
+  loadSettings();
+  // Demo live events
+  setInterval(demoLiveEvent, 9000);
+}
+
+function launchApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-shell').style.display='flex';
+  const srv = localStorage.getItem('g_server')||'';
+  document.getElementById('server-display').textContent = srv.replace('http://','');
+  setupWSHandlers();
+  loadAll();
+}
+
+// ═══ WS HANDLERS ════════════════════════════════════════════════════════════
+function setupWSHandlers(){
+  G.on('WS_STATUS',({connected})=>setConnStatus(connected));
+  G.on('SNAPSHOT', ({children:ch})=>{ children=ch; renderDashboard(); });
+  G.on('HEARTBEAT', msg=>updateDeviceStatus(msg));
+  G.on('ACTIVITY', msg=>prependActivity(msg));
+  G.on('ALERT', msg=>showNotif(msg));
+  G.on('SCREENSHOT', ({childId,image})=>showScreenshot(childId,image));
+  G.on('DEVICE_STATUS', msg=>handleDeviceStatus(msg));
+}
+
+function setConnStatus(on){
+  const dot=document.getElementById('ws-dot');
+  const lbl=document.getElementById('ws-label');
+  const bar=document.getElementById('conn-bar');
+  if(on){dot.classList.add('live');lbl.textContent='Live';bar.classList.remove('show')}
+  else{dot.classList.remove('live');lbl.textContent='Reconnecting…';bar.classList.add('show');document.getElementById('conn-bar-text').textContent='Reconnecting to Guardian server…'}
+}
+
+// ═══ LOAD DATA ═══════════════════════════════════════════════════════════════
+async function loadAll(){
+  try{ children = await G.getChildren(); }catch(e){ children=DEMO_CHILDREN; }
+  renderDashboard(); loadActivity(); loadApps(); loadWebFilter(); loadReports(); loadPairing(); loadSettings();
+}
+
+function loadDashboard(){ renderDashboard(); }
+
+function renderDashboard(){
+  const total = children.reduce((a,c)=>a+(c.today_minutes||0),0);
+  const blocks = children.reduce((a,c)=>a+(c.blocks_today||0),0);
+  const online = children.filter(c=>c.online_devices>0).length;
+  document.getElementById('s-online').textContent = online+'/'+children.length;
+  document.getElementById('s-time').textContent = fmtTime(total);
+  document.getElementById('s-blocks').textContent = blocks;
+  document.getElementById('s-study').textContent = children.filter(c=>c.study_mode_active).length + ' active';
+
+  // Child cards
+  const area = document.getElementById('child-cards-area');
+  area.innerHTML = '';
+  children.forEach(ch=>{
+    const pct = Math.min(100,Math.round((ch.today_minutes||0)/(ch.daily_limit_minutes||180)*100));
+    const fillClass = pct>=90?'pf-r':pct>=70?'pf-a':'pf-g';
+    const timeStr = fmtTime(ch.today_minutes||0)+' / '+fmtTime(ch.daily_limit_minutes||180);
+    const isOnline = ch.online_devices>0;
+    const av = ch.name==='Sofia'?'ch-av-sofia':'ch-av-emma';
+    const dtag = ch.platform==='Android'||ch.platform==='android'?'<span class="dtag dt-a">Android</span>':'<span class="dtag dt-i">iPad</span>';
+    const card = document.createElement('div');
+    card.className='child-card';
+    card.innerHTML=`
+      <div class="ch-head">
+        <div class="ch-av ${av} ${isOnline?'online':'offline'}">🧒${isOnline?'<div class="online-dot"></div>':''}</div>
+        <div style="flex:1">
+          <div class="ch-name">${ch.name}, ${ch.age||'–'}</div>
+          <div class="ch-status"><span class="chip ca">${ch.study_mode_active?'📚 Study Mode':'🎮 Playing'}</span></div>
+        </div>
+        ${dtag}
+      </div>
+      <div class="ch-body">
+        <div class="time-row"><span>Screen Time Today</span><span style="color:var(--${pct>=90?'red':pct>=70?'amber':'green'})">${timeStr}</span></div>
+        <div class="pbar"><div class="pfill ${fillClass}" style="width:${pct}%"></div></div>
+        <div class="ch-chips">
+          ${ch.study_mode_active?'<span class="chip cb">📚 Study mode</span>':'<span class="chip cg">✅ Normal mode</span>'}
+          ${pct>=80?'<span class="chip ca">⚠️ Limit soon</span>':'<span class="chip cg">✅ On track</span>'}
+        </div>
+        <div class="ch-acts">
+          <button class="btn bd" onclick="openLock('${ch.id}','${ch.name}')">🔒 Lock</button>
+          <button class="btn bgreen" onclick="toggleStudyChild('${ch.id}',${ch.study_mode_active?0:1},'${ch.name}')">📚 ${ch.study_mode_active?'End Study':'Study'}</button>
+          <button class="btn bp" onclick="nav('liveview',null)">👁️ Live</button>
+          <button class="btn bg_" onclick="openMsg('${ch.id}','${ch.name}')">💬</button>
+        </div>
+      </div>`;
+    area.appendChild(card);
+  });
+
+  // Mirror cards
+  renderMirrors();
+}
+
+function renderMirrors(){
+  const area = document.getElementById('mirror-area');
+  if(!area) return;
+  area.innerHTML='';
+  const demos = [
+    {name:'Sofia',av:'ch-av-sofia',platform:'Android',dtag:'dt-a',content:`
+      <div class="app-grid-sim">
+        <div class="app-sim" style="background:rgba(255,200,0,.2)">🎮<span>Minecraft</span></div>
+        <div class="app-sim" style="background:rgba(100,200,100,.2)">📚<span>Khan</span></div>
+        <div class="app-sim blocked" style="background:rgba(255,100,100,.15)">📺<span>YouTube</span></div>
+        <div class="app-sim" style="background:rgba(100,150,255,.2)">🎨<span>Draw</span></div>
+        <div class="app-sim blocked" style="background:rgba(200,100,200,.15)">🎵<span>TikTok</span></div>
+        <div class="app-sim" style="background:rgba(255,150,50,.2)">📖<span>Read</span></div>
+        <div class="app-sim" style="background:rgba(50,200,200,.2)">🌍<span>Maps</span></div>
+        <div class="app-sim blocked" style="background:rgba(255,100,100,.15)">🎰<span>Roblox</span></div>
+      </div>`},
+    {name:'Emma',av:'ch-av-emma',platform:'iPad',dtag:'dt-i',content:`
+      <div style="background:rgba(255,255,255,.08);border-radius:14px;padding:16px;width:85%;text-align:center;backdrop-filter:blur(10px)">
+        <div style="font-size:30px;margin-bottom:8px">📖</div>
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:white">Khan Academy Kids</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">Math · Level 3</div>
+        <div style="margin-top:10px;height:5px;background:rgba(255,255,255,.15);border-radius:10px">
+          <div style="width:65%;height:100%;background:var(--green);border-radius:10px"></div>
+        </div>
+        <div style="font-size:8px;color:rgba(255,255,255,.4);margin-top:4px">65% complete</div>
+      </div>`}
+  ];
+
+  (children.length>0?children.map((ch,i)=>({...ch,...demos[i%2]})):demos).forEach((ch,i)=>{
+    const d=demos[i%2];
+    const el=document.createElement('div');
+    el.className='mirror-card';
+    el.id='mirror-'+( children[i]?.id || ('demo-'+i) );
+    el.innerHTML=`
+      <div class="mirror-head">
+        <div class="mirror-title"><span style="font-size:18px">🧒</span>${ch.name||d.name}'s Tablet<span class="dtag ${d.dtag}" style="margin-left:6px">${d.platform}</span></div>
+        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      </div>
+      <div class="mirror-screen">
+        <div class="tab-sim" style="background:linear-gradient(180deg,#1a1a2e,#16213e,#0f3460)">
+          <div class="tab-bar"><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><span>📶 🔋 ${80+i*10}%</span></div>
+          <div class="tab-content">${d.content}</div>
+          <div class="screen-lock-overlay" id="slo-${i}">
+            <div style="font-size:44px">🔒</div>
+            <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:white">Device Locked</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5);text-align:center">Locked by Mom</div>
+          </div>
+        </div>
+      </div>
+      <div class="mirror-ctrls">
+        <button class="mcbtn mc-r" onclick="openLock('${children[i]?.id||'c'+(i+1)}','${ch.name||d.name}')">🔒 Lock</button>
+        <button class="mcbtn mc-a" onclick="toggleStudyChild('${children[i]?.id||'c'+(i+1)}',1,'${ch.name||d.name}')">📚 Study</button>
+        <button class="mcbtn mc-b" onclick="openMsg('${children[i]?.id||'c'+(i+1)}','${ch.name||d.name}')">💬 Msg</button>
+        <button class="mcbtn mc-g" onclick="doScreenshot('${children[i]?.id||'c'+(i+1)}')">📸</button>
+      </div>`;
+    area.appendChild(el);
+  });
+}
+
+// ═══ ACTIVITY ════════════════════════════════════════════════════════════════
+async function loadActivity(){
+  let acts;
+  try{ acts = await G.getActivity({limit:40}); }catch(e){ acts=DEMO_ACTIVITY; }
+  renderActivityFeed(acts, 'activity-feed');
+  renderActivityFeed(acts, 'full-activity-list');
+  renderAlertList(acts.filter(a=>a.wasBlocked||a.was_blocked));
+  renderDailySummary();
+}
+
+function renderActivityFeed(acts, targetId){
+  const el=document.getElementById(targetId);
+  if(!el) return;
+  if(!acts||!acts.length){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No activity yet</div></div>';return}
+  el.innerHTML = acts.slice(0,demoModeOn?acts.length:20).map(a=>{
+    const blocked=a.wasBlocked||a.was_blocked;
+    const badge=a.childName==='Sofia'||a.child_name==='Sofia'?'bs':'be';
+    const cname=a.childName||a.child_name||'Child';
+    const icon=blocked?'🚫':a.icon||(a.eventType==='APP_OPENED'?'📱':'🌐');
+    const bg=blocked?'rgba(255,77,109,.12)':'rgba(0,229,160,.1)';
+    const detail=a.detail||(a.blockReason||a.block_reason||a.appName||a.app_name||a.domain||'Activity');
+    const time=a.time||fmtAgo(a.timestamp);
+    return`<div class="ai${blocked?' alert':''}">
+      <div class="ai-icon" style="background:${bg}">${icon}</div>
+      <div class="ai-info">
+        <div class="ai-name"><span class="badge ${badge}">${cname}</span> ${a.name||a.appName||a.app_name||a.eventType||'Activity'}</div>
+        <div class="ai-det">${detail}</div>
+      </div>
+      <div class="ai-time">${time}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAlertList(alerts){
+  const el=document.getElementById('alert-list');
+  if(!el) return;
+  if(!alerts||!alerts.length){el.innerHTML='<div class="empty"><div class="empty-text" style="font-size:13px;padding:12px 0">No alerts today 🎉</div></div>';return}
+  el.innerHTML=alerts.slice(0,5).map(a=>{
+    const badge=a.childName==='Sofia'||a.child_name==='Sofia'?'bs':'be';
+    return`<div class="ai alert">
+      <div class="ai-icon" style="background:rgba(255,77,109,.12)">⚠️</div>
+      <div class="ai-info"><div class="ai-name"><span class="badge ${badge}">${a.childName||a.child_name||'Child'}</span> ${a.name||a.appName||a.domain||'Blocked'}</div>
+      <div class="ai-det">${a.time||fmtAgo(a.timestamp)}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderDailySummary(){
+  const el=document.getElementById('daily-summary');
+  if(!el) return;
+  el.innerHTML=children.map(ch=>{
+    const pct=Math.min(100,Math.round((ch.today_minutes||0)/(ch.daily_limit_minutes||180)*100));
+    const col=pct>=90?'red':pct>=70?'amber':'green';
+    return`<div style="margin-bottom:12px">
+      <div class="time-row"><span style="font-size:13px">${ch.name}</span><span style="color:var(--${col})">${fmtTime(ch.today_minutes||0)}</span></div>
+      <div class="pbar"><div class="pfill pf-${col[0]}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('')||'<div class="skeleton" style="height:80px"></div>';
+  const b=document.getElementById('s-blocks');
+  const totalB=children.reduce((a,c)=>a+(c.blocks_today||0),0);
+  if(b) b.textContent=totalB;
+}
+
+function prependActivity(msg){
+  const blocked=msg.wasBlocked||msg.was_blocked;
+  const cname=msg.childName||'Child';
+  const badge=cname==='Sofia'?'bs':'be';
+  const icon=blocked?'🚫':'📱';
+  const bg=blocked?'rgba(255,77,109,.12)':'rgba(0,229,160,.1)';
+  const html=`<div class="ai${blocked?' alert':''}">
+    <div class="ai-icon" style="background:${bg}">${icon}</div>
+    <div class="ai-info">
+      <div class="ai-name"><span class="badge ${badge}">${cname}</span> ${msg.appName||msg.domain||msg.eventType||'Activity'}</div>
+      <div class="ai-det">${msg.blockReason||msg.detail||''}</div>
+    </div>
+    <div class="ai-time">just now</div>
+  </div>`;
+  ['activity-feed','full-activity-list'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      const empty=el.querySelector('.empty');
+      if(empty) el.innerHTML='';
+      el.insertAdjacentHTML('afterbegin',html);
+      while(el.children.length>20) el.removeChild(el.lastChild);
+    }
+  });
+  if(blocked){
+    alertCount++;
+    const badge=document.getElementById('alert-badge');
+    if(badge){badge.style.display='';badge.textContent=alertCount}
+    document.getElementById('notif-dot').classList.add('show');
+  }
+}
+
+// ═══ APPS ════════════════════════════════════════════════════════════════════
+async function loadApps(){
+  renderAppList(DEMO_APPS_GAMES,'app-list-games');
+  renderAppList(DEMO_APPS_EDU,'app-list-edu');
+  if(children.length>0&&!demoModeOn){
+    try{
+      const apps=await G.getApps(children[0].id);
+      if(apps.length) renderAppListFromAPI(apps);
+    }catch(e){}
+  }
+}
+
+function renderAppList(apps,targetId){
+  const el=document.getElementById(targetId);
+  if(!el) return;
+  el.innerHTML=apps.map(a=>`
+    <div class="app-li">
+      <div class="app-em" style="background:${a.bg}">${a.emoji}</div>
+      <div class="app-inf"><div class="app-nm">${a.name}</div><div class="app-cat">${a.cat}</div></div>
+      <div class="toggle ${a.on?(a.green?'on-g':'on'):''}" onclick="this.classList.toggle('on');this.classList.toggle('on-g')"></div>
+    </div>`).join('');
+}
+
+function showChildApps(idx,el){
+  document.querySelectorAll('#page-apps .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // In real app: reload for children[idx]
+}
+function addStudyApp(){showToast('App management coming soon — connect to server to manage apps','amber')}
+
+// ═══ WEB FILTER ══════════════════════════════════════════════════════════════
+const BLOCKED_DEFAULTS=['tiktok.com','youtube.com','instagram.com'];
+const ALLOWED_DEFAULTS=['pbskids.org','khanacademy.org','coolmathgames.com'];
+let webRulesCache = [];
+
+async function loadWebFilter(){
+  renderDomainList(BLOCKED_DEFAULTS,'blocked','blocked-list');
+  renderDomainList(ALLOWED_DEFAULTS,'allowed','allowed-list');
+  if(!demoModeOn){
+    try{
+      webRulesCache=await G.getWebRules();
+      const blocked=webRulesCache.filter(r=>r.rule_type==='block').map(r=>r.domain);
+      const allowed=webRulesCache.filter(r=>r.rule_type==='allow').map(r=>r.domain);
+      if(blocked.length) renderDomainList(blocked,'blocked','blocked-list');
+      if(allowed.length) renderDomainList(allowed,'allowed','allowed-list');
+    }catch(e){}
+  }
+}
+
+function renderDomainList(domains,type,targetId){
+  const el=document.getElementById(targetId);
+  if(!el) return;
+  el.innerHTML=domains.map(d=>`
+    <div class="domain-item ${type}" data-domain="${d}">
+      <span>${type==='blocked'?'🔴':'🟢'}</span>
+      <span style="flex:1;font-weight:500">${d}</span>
+      <span class="chip ${type==='blocked'?'cr':'cg'}" style="font-size:10px">Both</span>
+      <span class="domain-rm" onclick="removeDomain(this,'${type}')">×</span>
+    </div>`).join('');
+}
+
+async function addBlock(){
+  const inp=document.getElementById('block-inp');
+  const v=inp.value.trim().toLowerCase().replace(/^https?:\/\//,'');
+  if(!v) return;
+  inp.value='';
+  document.getElementById('blocked-list').insertAdjacentHTML('afterbegin',
+    `<div class="domain-item blocked" data-domain="${v}"><span>🔴</span><span style="flex:1;font-weight:500">${v}</span><span class="chip cr" style="font-size:10px">Both</span><span class="domain-rm" onclick="removeDomain(this,'blocked')">×</span></div>`);
+  showToast('🚫 '+v+' blocked on all devices','red');
+  if(!demoModeOn) try{await G.addWebRule(v,'block')}catch(e){}
+}
+
+async function addAllow(){
+  const inp=document.getElementById('allow-inp');
+  const v=inp.value.trim().toLowerCase().replace(/^https?:\/\//,'');
+  if(!v) return;
+  inp.value='';
+  document.getElementById('allowed-list').insertAdjacentHTML('afterbegin',
+    `<div class="domain-item allowed" data-domain="${v}"><span>🟢</span><span style="flex:1;font-weight:500">${v}</span><span class="chip cg" style="font-size:10px">Both</span><span class="domain-rm" onclick="removeDomain(this,'allowed')">×</span></div>`);
+  showToast('✅ '+v+' allowed on all devices','green');
+  if(!demoModeOn) try{await G.addWebRule(v,'allow')}catch(e){}
+}
+
+function removeDomain(el){el.closest('.domain-item').remove()}
+function toggleFcat(el){el.querySelector('.toggle').classList.toggle('on');el.querySelector('.toggle').classList.toggle('on-g')}
+
+// ═══ SCHEDULE ════════════════════════════════════════════════════════════════
+function updateLim(who,v){
+  const h=Math.floor(v), m=Math.round((v-h)*60);
+  document.getElementById(who+'-lim').textContent=h+'h '+m+'m';
+}
+
+// ═══ REPORTS ═════════════════════════════════════════════════════════════════
+async function loadReports(){
+  document.getElementById('r-total').textContent='18.4h';
+  document.getElementById('r-study').textContent='8h 20m';
+  document.getElementById('r-blocks').textContent='34';
+  document.getElementById('r-days').textContent='4/5';
+  document.getElementById('top-apps').innerHTML=`
+    ${topApp('🎮 Minecraft (Sofia)','4h 20m','accent',85)}
+    ${topApp('📖 Khan Academy (Emma)','3h 50m','green',75)}
+    ${topApp('🎨 Drawing & Art (Sofia)','2h 10m','blue',42)}
+    ${topApp('🔢 Prodigy Math (Both)','1h 45m','green',34)}
+    ${topApp('📖 Reading App (Emma)','1h 20m','accent',26)}`;
+  if(!demoModeOn) try{
+    const r=await G.getReport();
+    // map real report data to chart
+  }catch(e){}
+}
+function topApp(name,time,col,pct){
+  return`<div style="margin-bottom:11px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px"><span>${name}</span><span style="color:var(--${col})">${time}</span></div>
+    <div class="pbar"><div class="pfill" style="width:${pct}%;background:var(--${col})"></div></div>
+  </div>`
+}
+
+// ═══ PAIRING ═════════════════════════════════════════════════════════════════
+async function loadPairing(){
+  const el=document.getElementById('pair-child-select');
+  if(!el) return;
+  if(!children.length){el.innerHTML='<div style="color:var(--t2);font-size:13px;padding:12px">No child profiles yet — go to Settings to add a child.</div>';return}
+  el.innerHTML=children.map((ch,i)=>`
+    <div onclick="selectPairChild('${ch.id}','${ch.name}',this)" style="display:flex;align-items:center;gap:12px;padding:13px;background:var(--s2);border-radius:12px;cursor:pointer;border:2px solid ${i===0?'var(--accent)':'transparent'};transition:border-color .2s">
+      <div class="ch-av ${ch.name==='Sofia'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
+      <div><div style="font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--t2)">Age ${ch.age} · ${ch.grade?'Grade '+ch.grade:''}</div></div>
+    </div>`).join('');
+  if(children[0]) selectPairChild(children[0].id,children[0].name,el.children[0]);
+}
+
+function selectPairChild(id,name,el){
+  document.querySelectorAll('#pair-child-select > div').forEach(d=>d.style.borderColor='transparent');
+  el.style.borderColor='var(--accent)';
+  generateQR(id,name);
+}
+
+function generateQR(childId,name){
+  const qrdiv=document.getElementById('qrcode');
+  qrdiv.innerHTML='';
+  const code=btoa((localStorage.getItem('g_fid')||'demo')+':'+childId);
+  const server=localStorage.getItem('g_server')||'http://guardian-server-production.up.railway.app';
+  const url=`guardian://pair?code=${code}&server=${encodeURIComponent(server)}&child=${encodeURIComponent(name)}`;
+  document.getElementById('pair-code-str').textContent=url.substring(0,60)+'…';
+  try{
+    new QRCode(qrdiv,{text:url,width:180,height:180,colorDark:'#6c63ff',colorLight:'#111219'});
+  }catch(e){
+    qrdiv.innerHTML=`<div style="background:var(--s3);width:180px;height:180px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);text-align:center;padding:16px">QR Library not loaded.<br>Include qrcode.js CDN.</div>`;
+  }
+}
+
+function refreshQR(){
+  const first=document.querySelector('#pair-child-select > div[style*="accent"]');
+  if(first) first.click();
+  showToast('QR code refreshed','blue');
+}
+
+// ═══ SETTINGS ════════════════════════════════════════════════════════════════
+function loadSettings(){
+  const el=document.getElementById('profile-list');
+  if(!el) return;
+  el.innerHTML=children.map(ch=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:13px;background:var(--s2);border-radius:12px">
+      <div class="ch-av ${ch.name==='Sofia'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
+      <div style="flex:1"><div style="font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--t2)">Age ${ch.age||'–'} · ${ch.platform||'–'} · ${ch.grade?'Grade '+ch.grade:''}</div></div>
+      <button class="btn bg_" style="padding:6px 11px;font-size:11px">Edit</button>
+    </div>`).join('')||'<div class="empty"><div class="empty-text">No children added yet</div></div>';
+  const srv=localStorage.getItem('g_server')||'guardian-server-production.up.railway.app';
+  const sdsp=document.getElementById('server-display');
+  if(sdsp) sdsp.textContent=srv.replace('http://','');
+}
+
+async function pingServer(){
+  showToast('Testing connection…','blue');
+  try{
+    const r=await fetch((localStorage.getItem('g_server')||'http://guardian-server-production.up.railway.app')+'/health');
+    const d=await r.json();
+    showToast('✅ Server online — '+d.connectedDevices+' device(s) connected','green');
+    document.getElementById('server-status-text').textContent='Connected · '+d.connectedDevices+' devices';
+  }catch(e){showToast('❌ Cannot reach server','red')}
+}
+
+function addChildModal(){
+  const name=prompt('Child\'s name:');
+  if(!name) return;
+  const age=prompt('Age:');
+  const grade=prompt('Grade (e.g. 4):');
+  if(!demoModeOn){
+    G.addChild(name,parseInt(age)||7,grade).then(r=>{
+      showToast('✅ '+name+' added! Pairing code ready.','green');
+      loadAll();
+    }).catch(e=>showToast('Error: '+e.error,'red'));
+  } else {
+    showToast('✅ '+name+' added (demo mode)','green');
+  }
+}
+
+// ═══ REMOTE ACTIONS ══════════════════════════════════════════════════════════
+function openLock(childId,name){
+  lockTarget={childId,name};
+  document.getElementById('lock-modal-title').textContent='Lock '+name+'\'s Device';
+  document.getElementById('lock-modal').classList.add('open');
+}
+
+function doLock(mins){
+  if(!lockTarget) return;
+  closeModal('lock-modal');
+  if(demoModeOn){
+    const idx=children.findIndex(c=>c.id===lockTarget.childId);
+    if(idx>=0){
+      document.getElementById('slo-'+idx)?.classList.add('show');
+      setTimeout(()=>document.getElementById('slo-'+idx)?.classList.remove('show'),(mins||30)*60*1000);
+    }
+  } else {
+    G.lockDevice(lockTarget.childId, mins||undefined);
+  }
+  showToast('🔒 '+lockTarget.name+'\'s device locked'+(mins?' for '+mins+'min':'')+'!','red');
+}
+
+function toggleStudyAll(){
+  studyAll=!studyAll;
+  const btn=document.getElementById('study-btn');
+  const st=document.getElementById('study-st');
+  btn.classList.toggle('on',studyAll);
+  st.textContent=studyAll?'ON':'OFF';
+  children.forEach(ch=>{
+    ch.study_mode_active=studyAll?1:0;
+    if(!demoModeOn) G.studyMode(ch.id,studyAll);
+  });
+  renderDashboard();
+  showToast('📚 Study Mode '+(studyAll?'activated on all tablets!':'deactivated'),'green');
+}
+
+function toggleStudyChild(childId,active,name){
+  const ch=children.find(c=>c.id===childId);
+  if(ch) ch.study_mode_active=active;
+  if(!demoModeOn) G.studyMode(childId,!!active);
+  renderDashboard();
+  showToast('📚 Study Mode '+(active?'ON':'OFF')+' for '+name,'green');
+}
+
+function emergencyLockAll(){
+  const btn=document.getElementById('lock-btn');
+  btn.classList.toggle('on');
+  if(btn.classList.contains('on')){
+    if(!demoModeOn) G.lockAll();
+    document.querySelectorAll('.screen-lock-overlay').forEach(o=>o.classList.add('show'));
+    showToast('🔒 EMERGENCY LOCK — All devices locked!','red');
+  } else {
+    children.forEach(ch=>{if(!demoModeOn)G.unlockDevice(ch.id)});
+    document.querySelectorAll('.screen-lock-overlay').forEach(o=>o.classList.remove('show'));
+    showToast('🔓 All devices unlocked','green');
+  }
+}
+
+function openMsg(childId,name){
+  msgTarget={childId,name};
+  document.getElementById('msg-target-name').textContent=name;
+  document.getElementById('msg-text').value='';
+  document.getElementById('msg-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('msg-text').focus(),200);
+}
+
+function doSendMsg(){
+  const txt=document.getElementById('msg-text').value.trim();
+  if(!txt||!msgTarget) return;
+  closeModal('msg-modal');
+  if(!demoModeOn) G.message(msgTarget.childId,txt);
+  showToast('💬 Message sent to '+msgTarget.name+'!','blue');
+}
+
+function quickMsg(txt){document.getElementById('msg-text').value=txt; document.getElementById('msg-text').focus()}
+
+function doScreenshot(childId){
+  if(!demoModeOn) G.screenshot(childId);
+  showToast('📸 Screenshot requested — will appear in Live View','blue');
+}
+
+function screenshotAll(){children.forEach(c=>doScreenshot(c.id))}
+function messageAll(){if(children[0]) openMsg('all','Both Kids')}
+
+function showScreenshot(childId,base64){
+  showToast('📸 Screenshot received!','blue');
+  // Replace mirror screen with actual screenshot
+}
+
+function updateDeviceStatus(msg){
+  const ch=children.find(c=>c.id===msg.childId);
+  if(ch){
+    if(msg.battery) ch.battery=msg.battery;
+    if(msg.currentApp) ch.currentApp=msg.currentApp;
+  }
+}
+function handleDeviceStatus(msg){
+  const ch=children.find(c=>c.id===msg.childId);
+  if(ch) ch.online_devices=msg.type==='DEVICE_ONLINE'?1:0;
+  renderDashboard();
+}
+
+// ═══ NOTIFICATIONS ═══════════════════════════════════════════════════════════
+let notifTimer;
+function showNotif(msg){
+  const cname=msg.childName||'Child';
+  document.getElementById('np-title').textContent=cname+' — Alert';
+  document.getElementById('np-text').textContent=(msg.appName||msg.domain||'Content')+' was blocked';
+  document.getElementById('np-action-btn').onclick=()=>{
+    const ch=children.find(c=>c.name===cname||c.id===msg.childId);
+    if(ch) openLock(ch.id,cname);
+    dismissNotif();
+  };
+  document.getElementById('notif-popup').classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer=setTimeout(dismissNotif,7000);
+}
+function dismissNotif(){document.getElementById('notif-popup').classList.remove('show')}
+function toggleNotifPanel(){document.getElementById('notif-dot').classList.remove('show'); alertCount=0; const b=document.getElementById('alert-badge'); if(b) b.style.display='none';}
+
+// ═══ DEMO LIVE EVENTS ════════════════════════════════════════════════════════
+const demoEvents=[
+  {childName:'Sofia',appName:'TikTok',wasBlocked:true,blockReason:'Social Media blocked'},
+  {childName:'Emma',appName:'Khan Academy Kids',wasBlocked:false},
+  {childName:'Sofia',appName:'Minecraft',wasBlocked:false},
+  {childName:'Sofia',domain:'youtube.com',wasBlocked:true,blockReason:'Web Filter — Entertainment'},
+  {childName:'Emma',domain:'pbskids.org',wasBlocked:false},
+];
+let demoIdx=0;
+function demoLiveEvent(){
+  const e=demoEvents[demoIdx%demoEvents.length]; demoIdx++;
+  prependActivity(e);
+  if(e.wasBlocked) showNotif(e);
+}
+
+// ═══ NAVIGATION ══════════════════════════════════════════════════════════════
+const pageTitles={dashboard:'Overview Dashboard',liveview:'📱 Live View — Real-Time',activity:'⚡ Activity Feed',apps:'📦 App Manager',webfilter:'🌐 Web Filter',schedule:'⏰ Schedule & Limits',reports:'📈 Reports',pairing:'🔗 Add Device',settings:'⚙️ Settings'};
+
+function nav(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el){document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));el.classList.add('active')}
+  document.getElementById('page-title').textContent=pageTitles[page]||page;
+}
+function filterFeed(f,el){document.querySelectorAll('#page-activity .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+
+// ═══ MODALS ═══════════════════════════════════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.modal-bg.open').forEach(m=>m.classList.remove('open'));
+  if(e.key==='l'||e.key==='L') emergencyLockAll();
+  if(e.key==='s'||e.key==='S') toggleStudyAll();
+});
+document.querySelectorAll('.modal-bg').forEach(mb=>mb.addEventListener('click',e=>{if(e.target===mb)mb.classList.remove('open')}));
+
+// ═══ UTILS ═══════════════════════════════════════════════════════════════════
+function fmtTime(mins){const h=Math.floor(mins/60),m=mins%60;return h?h+'h '+m+'m':m+'m'}
+function fmtAgo(ts){
+  if(!ts) return '';
+  const d=Math.floor((Date.now()-ts*1000)/1000);
+  if(d<60) return d+'s ago';
+  if(d<3600) return Math.floor(d/60)+'m ago';
+  return Math.floor(d/3600)+'h ago';
+}
+
+let toastT;
+function showToast(msg,type='green'){
+  const existing=document.getElementById('toast');
+  if(existing) existing.remove();
+  const cols={green:'var(--green)',red:'var(--red)',amber:'var(--amber)',blue:'var(--blue)'};
+  const t=document.createElement('div');
+  t.id='toast';
+  t.style.cssText=`position:fixed;bottom:70px;right:24px;background:var(--surface);border:1px solid ${cols[type]};border-left:4px solid ${cols[type]};border-radius:10px;padding:11px 16px;font-size:13px;font-weight:500;box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:9998;max-width:320px;animation:slideIn .35s cubic-bezier(.17,.67,.35,1.3)`;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.remove(),3500);
+}
+
+// ═══ AUTO-START ═══════════════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  if(G.isLoggedIn){ launchApp(); }
+  // else show auth screen (already visible by default)
+});
+</script>
+</body>
+</html>
