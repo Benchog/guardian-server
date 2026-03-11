@@ -161,7 +161,7 @@ function dbRun(sql, params = []) {
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'dashboard')));
+app.use(express.static(__dirname));
 
 function authMiddleware(req, res, next) {
   const h = req.headers.authorization;
