@@ -4,1648 +4,1447 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Guardian — Family Control Center</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-
+<link rel="manifest" href="/manifest.json"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Guardian"/>
+<meta name="theme-color" content="#0d0e17"/>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg:#0a0b10;--surface:#111219;--s2:#181a24;--s3:#1e2130;
-  --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);
-  --accent:#6c63ff;--a2:#ff6b9d;--green:#00e5a0;--amber:#ffb347;--red:#ff4d6d;--blue:#4da6ff;
-  --text:#e8eaf0;--t2:#8b8fa8;--t3:#555870;
-  --r:16px;--rs:10px;
+  --bg:#0d0e17;--s1:#12131f;--s2:#181a28;--s3:#1e2135;--s4:#252840;
+  --b1:rgba(255,255,255,.06);--b2:rgba(255,255,255,.11);--b3:rgba(255,255,255,.18);
+  --accent:#7c6fff;--a2:#ff6eb4;--a3:#00e8b0;--amber:#ffbe4f;--red:#ff4f6e;--blue:#4fb3ff;--teal:#00c9c9;
+  --text:#eceef8;--t2:#9097b8;--t3:#555d7a;
+  --r:14px;--rs:8px;
+  --child1:#7c6fff;--child2:#ff6eb4;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;top:-200px;left:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(108,99,255,.12) 0%,transparent 70%);pointer-events:none;z-index:0}
-body::after{content:'';position:fixed;bottom:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,157,.08) 0%,transparent 70%);pointer-events:none;z-index:0}
+html{scroll-behavior:smooth}
+body{font-family:'Cabinet Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-/* ── AUTH SCREEN ─────────────────────────────────────────────── */
-#auth-screen{
-  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-  background:var(--bg);z-index:9000;
-}
-.auth-card{
-  background:var(--surface);border:1px solid var(--b2);border-radius:24px;
-  padding:40px;width:420px;max-width:95vw;
-  box-shadow:0 40px 120px rgba(0,0,0,.6);
-  animation:scaleIn .4s cubic-bezier(.17,.67,.35,1.3);
-}
-@keyframes scaleIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
-.auth-logo{text-align:center;margin-bottom:28px}
-.auth-logo-icon{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:64px;height:64px;border-radius:18px;font-size:30px;
-  background:linear-gradient(135deg,var(--accent),var(--a2));margin-bottom:14px;
-}
-.auth-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:4px}
-.auth-sub{color:var(--t2);font-size:14px}
-.auth-tabs{display:flex;background:var(--s2);border-radius:12px;padding:4px;margin-bottom:24px}
-.auth-tab{flex:1;padding:9px;border:none;background:none;color:var(--t2);border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-.auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-.field input{
-  width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:10px;
-  padding:11px 14px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;
-}
-.field input:focus{border-color:var(--accent)}
-.field input::placeholder{color:var(--t3)}
-.field-row{display:flex;gap:10px}
-.field-row .field{flex:1}
-.server-field{background:var(--s3);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--t3);display:flex;align-items:center;gap:8px}
-.server-field input{background:none;border:none;color:var(--t2);font-size:12px;flex:1;outline:none;font-family:'DM Sans',sans-serif}
-.auth-btn{
-  width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),var(--a2));
-  border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;
-  cursor:pointer;transition:opacity .2s;font-family:'DM Sans',sans-serif;
-}
+/* Ambient background */
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.ambient-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.18}
+.ambient-orb:nth-child(1){width:600px;height:600px;background:var(--accent);top:-200px;left:-150px}
+.ambient-orb:nth-child(2){width:500px;height:500px;background:var(--a2);bottom:-200px;right:-100px}
+.ambient-orb:nth-child(3){width:300px;height:300px;background:var(--a3);top:40%;left:40%}
+
+/* ── AUTH ── */
+#auth-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:9000}
+.auth-wrap{width:440px;max-width:95vw;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{text-align:center;margin-bottom:32px}
+.auth-icon{width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--a2));display:inline-flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:16px;box-shadow:0 20px 60px rgba(124,111,255,.4)}
+.auth-brand{font-family:'Clash Display',sans-serif;font-size:32px;font-weight:700;letter-spacing:-1px}
+.auth-tagline{color:var(--t2);font-size:14px;margin-top:4px}
+.auth-card{background:var(--s1);border:1px solid var(--b2);border-radius:24px;padding:36px;box-shadow:0 40px 100px rgba(0,0,0,.5)}
+.auth-tabs{display:flex;background:var(--s2);border-radius:12px;padding:4px;margin-bottom:28px}
+.auth-tab{flex:1;padding:10px;border:none;background:none;color:var(--t2);border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Cabinet Grotesk',sans-serif}
+.auth-tab.active{background:var(--s3);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--t2);margin-bottom:7px;text-transform:uppercase;letter-spacing:.8px}
+.field input,.field select{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:'Cabinet Grotesk',sans-serif;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.auth-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--a2));color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;transition:opacity .2s;margin-top:4px}
 .auth-btn:hover{opacity:.9}
-.auth-btn:disabled{opacity:.5;cursor:not-allowed}
 .auth-err{color:var(--red);font-size:13px;text-align:center;margin-top:12px;min-height:20px}
-
-/* ── CONNECTION STATUS BAR ───────────────────────────────────── */
-#conn-bar{
-  position:fixed;top:0;left:0;right:0;z-index:2000;
-  background:rgba(255,77,109,.15);border-bottom:1px solid rgba(255,77,109,.3);
-  padding:8px 20px;font-size:12px;font-weight:600;color:var(--red);
-  display:none;align-items:center;gap:8px;
-}
-#conn-bar.show{display:flex}
-#conn-bar.connected{background:rgba(0,229,160,.1);border-color:rgba(0,229,160,.25);color:var(--green)}
-
-/* ── APP SHELL ───────────────────────────────────────────────── */
-.app{display:flex;min-height:100vh;position:relative;z-index:1}
-
-/* ── SIDEBAR ─────────────────────────────────────────────────── */
-.sidebar{
-  width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--b1);
-  display:flex;flex-direction:column;padding:24px 16px;
-  position:fixed;top:0;left:0;bottom:0;z-index:100;
-  transform:translateX(0);transition:transform .3s;
-}
-.sidebar.hidden{transform:translateX(-240px)}
-.logo{display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:32px}
-.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--a2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.5px}
-.logo-sub{font-size:11px;color:var(--t3);letter-spacing:.5px}
-.nav-section{margin-bottom:24px}
-.nav-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;padding:0 10px;margin-bottom:6px}
-.nav-item{
-  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rs);cursor:pointer;
-  transition:all .2s;color:var(--t2);font-size:14px;font-weight:500;margin-bottom:2px;position:relative;
-}
-.nav-item:hover{background:var(--s2);color:var(--text)}
-.nav-item.active{background:rgba(108,99,255,.15);color:var(--accent)}
-.nav-item.active::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
-.nav-icon{font-size:17px;width:22px;text-align:center}
-.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;min-width:18px;text-align:center}
-.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--b1)}
-.conn-pill{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:12px;font-weight:500}
-.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--t3)}
-.conn-dot.live{background:var(--green);animation:blink 1.4s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.parent-info{display:flex;align-items:center;gap:10px;padding:8px 12px}
-.parent-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--a2));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:white;flex-shrink:0}
-.logout-btn{background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:4px 0;transition:color .2s;font-family:'DM Sans',sans-serif}
-.logout-btn:hover{color:var(--red)}
-
-/* ── MAIN ────────────────────────────────────────────────────── */
-.main{flex:1;margin-left:240px;display:flex;flex-direction:column;transition:margin .3s}
-
-/* ── TOPBAR ──────────────────────────────────────────────────── */
-.topbar{
-  height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;
-  border-bottom:1px solid var(--b1);background:rgba(10,11,16,.85);backdrop-filter:blur(20px);
-  position:sticky;top:0;z-index:50;
-}
-.topbar-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
-.topbar-right{display:flex;align-items:center;gap:12px}
-.study-btn,.lock-btn{
-  display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:50px;
-  font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid;
-  font-family:'Syne',sans-serif;
-}
-.study-btn{background:rgba(0,229,160,.1);border-color:rgba(0,229,160,.3);color:var(--green)}
-.study-btn:hover,.study-btn.on{background:var(--green);color:#0a0b10;border-color:var(--green)}
-.study-btn.on{animation:pglow 1.5s infinite}
-@keyframes pglow{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.4)}50%{box-shadow:0 0 0 8px rgba(0,229,160,0)}}
-.lock-btn{background:rgba(255,77,109,.1);border-color:rgba(255,77,109,.3);color:var(--red)}
-.lock-btn:hover,.lock-btn.on{background:var(--red);color:white;border-color:var(--red);animation:rglow 1.5s infinite}
-@keyframes rglow{0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,.4)}50%{box-shadow:0 0 0 8px rgba(255,77,109,0)}}
-.notif-btn{width:38px;height:38px;border-radius:50%;background:var(--s2);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;position:relative;transition:background .2s}
-.notif-btn:hover{background:var(--s3)}
-.notif-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid var(--bg);display:none}
-.notif-dot.show{display:block}
-
-/* ── PAGES ───────────────────────────────────────────────────── */
-.page{display:none;padding:24px;animation:fadeIn .25s ease}
-.page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── GRID ────────────────────────────────────────────────────── */
-.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr}}
-
-/* ── CARDS ───────────────────────────────────────────────────── */
-.card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);padding:20px;transition:border-color .2s}
-.card:hover{border-color:var(--b2)}
-.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-.stat-card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;transition:border-color .2s}
-.stat-card:hover{border-color:var(--b2)}
-.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.si-g{background:rgba(0,229,160,.12)}.si-a{background:rgba(255,179,71,.12)}.si-r{background:rgba(255,77,109,.12)}.si-p{background:rgba(108,99,255,.15)}.si-b{background:rgba(77,166,255,.12)}
-.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1;margin-bottom:3px}
-.stat-lbl{font-size:12px;color:var(--t2)}
-.stat-chg{font-size:11px;margin-top:3px}
-
-/* ── CHILD CARDS ─────────────────────────────────────────────── */
-.child-card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;transition:all .25s}
-.child-card:hover{border-color:var(--b2);transform:translateY(-1px)}
-.ch-head{padding:18px 20px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--b1)}
-.ch-av{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid transparent;position:relative;flex-shrink:0}
-.ch-av.online{border-color:var(--green)}.ch-av.offline{border-color:var(--t3);opacity:.6}
-.ch-av-sofia{background:linear-gradient(135deg,#a78bfa,#ec4899)}
-.ch-av-emma{background:linear-gradient(135deg,#60a5fa,#34d399)}
-.online-dot{position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;background:var(--green);border:2px solid var(--surface)}
-.ch-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
-.ch-status{font-size:12px;color:var(--t2);margin-top:2px;display:flex;align-items:center;gap:5px}
-.dtag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;letter-spacing:.4px}
-.dt-a{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
-.dt-i{background:rgba(77,166,255,.12);color:var(--blue);border:1px solid rgba(77,166,255,.25)}
-.ch-body{padding:16px 20px}
-.time-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
-.time-row span:first-child{font-size:12px;color:var(--t2)}
-.pbar{height:7px;background:var(--s3);border-radius:10px;overflow:hidden;margin-bottom:14px}
-.pfill{height:100%;border-radius:10px;transition:width .8s cubic-bezier(.17,.67,.35,1)}
-.pf-g{background:var(--green)}.pf-a{background:var(--amber)}.pf-r{background:var(--red)}
-.ch-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
-.ch-acts{display:flex;gap:7px}
-
-/* ── BUTTONS ─────────────────────────────────────────────────── */
-.btn{flex:1;padding:9px 10px;border-radius:9px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px}
-.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.bp{background:var(--accent);color:white}
-.bd{background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.3)}
-.bg_{background:var(--s2);color:var(--t2)}
-.bg_:hover{background:var(--s3);color:var(--text)}
-.bgreen{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
-.bblue{background:rgba(77,166,255,.12);color:var(--blue);border:1px solid rgba(77,166,255,.25)}
-.btn-wide{width:100%;padding:12px;font-size:14px;border-radius:12px}
-
-/* ── CHIPS ───────────────────────────────────────────────────── */
-.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
-.cg{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
-.cr{background:rgba(255,77,109,.12);color:var(--red);border:1px solid rgba(255,77,109,.25)}
-.ca{background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.25)}
-.cb{background:rgba(77,166,255,.12);color:var(--blue);border:1px solid rgba(77,166,255,.25)}
-.cp{background:rgba(108,99,255,.15);color:var(--accent);border:1px solid rgba(108,99,255,.3)}
-
-/* ── ACTIVITY FEED ───────────────────────────────────────────── */
-.ai{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--b1);animation:fadeIn .35s ease}
-.ai:last-child{border-bottom:none}
-.ai-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.ai-info{flex:1}.ai-name{font-size:13px;font-weight:500;line-height:1.3}.ai-det{font-size:11px;color:var(--t2);margin-top:2px}
-.ai-time{font-size:11px;color:var(--t3);white-space:nowrap;padding-top:2px}
-.ai.alert{border-left:3px solid var(--red);padding-left:10px;margin-left:-1px}
-.badge{font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px}
-.bs{background:rgba(167,139,250,.2);color:#a78bfa}
-.be{background:rgba(96,165,250,.2);color:#60a5fa}
-
-/* ── TOGGLE ──────────────────────────────────────────────────── */
-.toggle{width:40px;height:22px;border-radius:20px;background:var(--s3);border:1px solid var(--b1);cursor:pointer;position:relative;transition:background .25s;flex-shrink:0}
-.toggle.on{background:var(--accent);border-color:var(--accent)}
-.toggle.on-g{background:var(--green);border-color:var(--green)}
-.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:2px;left:2px;transition:transform .25s cubic-bezier(.17,.67,.35,1.3)}
-.toggle.on::after,.toggle.on-g::after{transform:translateX(18px)}
-
-/* ── LIVE SCREEN MIRROR ──────────────────────────────────────── */
-.mirror-card{background:var(--surface);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
-.mirror-head{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
-.mirror-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
-.live-badge{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--red)}
-.live-dot{width:7px;height:7px;background:var(--red);border-radius:50%;animation:blink 1.2s infinite}
-.mirror-screen{aspect-ratio:9/16;background:#060608;position:relative;overflow:hidden}
-.tab-sim{width:100%;height:100%;position:relative;display:flex;flex-direction:column}
-.tab-bar{height:26px;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:9px;color:rgba(255,255,255,.6)}
-.tab-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;position:relative}
-.app-grid-sim{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;padding:4px}
-.app-sim{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:18px;gap:2px;cursor:pointer;transition:transform .15s;position:relative}
-.app-sim:hover{transform:scale(1.08)}
-.app-sim span{font-size:7px;color:white;font-weight:500;text-align:center}
-.app-sim.blocked::after{content:'🚫';position:absolute;top:-4px;right:-4px;font-size:9px;background:var(--surface);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
-.screen-lock-overlay{position:absolute;inset:0;background:rgba(10,11,16,.9);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .3s}
-.screen-lock-overlay.show{opacity:1;pointer-events:all}
-.mirror-ctrls{padding:10px 14px;display:flex;gap:7px;border-top:1px solid var(--b1);background:var(--s2)}
-.mcbtn{flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:3px;transition:all .15s}
-.mc-r{background:rgba(255,77,109,.15);color:var(--red)}.mc-r:hover{background:rgba(255,77,109,.25)}
-.mc-a{background:rgba(255,179,71,.12);color:var(--amber)}.mc-a:hover{background:rgba(255,179,71,.22)}
-.mc-b{background:rgba(77,166,255,.12);color:var(--blue)}.mc-b:hover{background:rgba(77,166,255,.22)}
-.mc-g{background:rgba(0,229,160,.1);color:var(--green)}.mc-g:hover{background:rgba(0,229,160,.2)}
-
-/* ── INPUT ───────────────────────────────────────────────────── */
-.inp{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
-.inp:focus{border-color:var(--accent)}
-.inp::placeholder{color:var(--t3)}
-.inp-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
-.inp-row .inp{flex:1}
-.add-btn{padding:10px 16px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
-.add-btn:hover{background:#7c74ff}
-.add-btn.green{background:var(--green);color:#0a0b10}
-
-/* ── DOMAIN ITEMS ────────────────────────────────────────────── */
-.domain-item{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--s2);border-radius:8px;margin-bottom:6px;font-size:13px}
-.domain-item.blocked{border-left:3px solid var(--red)}
-.domain-item.allowed{border-left:3px solid var(--green)}
-.domain-rm{color:var(--t3);cursor:pointer;font-size:17px;padding:0 3px;margin-left:auto;transition:color .2s}
-.domain-rm:hover{color:var(--red)}
-
-/* ── TABS ────────────────────────────────────────────────────── */
-.tabs{display:flex;gap:3px;background:var(--s2);padding:4px;border-radius:12px;margin-bottom:18px}
-.tab{flex:1;padding:8px 14px;border-radius:9px;border:none;background:none;color:var(--t2);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-.tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
-
-/* ── APP LIST ────────────────────────────────────────────────── */
-.app-li{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--b1)}
-.app-li:last-child{border-bottom:none}
-.app-em{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
-.app-inf{flex:1}.app-nm{font-size:13px;font-weight:500}.app-cat{font-size:11px;color:var(--t3);margin-top:1px}
-
-/* ── FILTER CATS ─────────────────────────────────────────────── */
-.fcat{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--rs);background:var(--s2);margin-bottom:7px;cursor:pointer;transition:all .2s}
-.fcat:hover{background:var(--s3)}
-.fcat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
-.fcat-name{flex:1;font-size:13px;font-weight:500}
-.fcat-count{font-size:11px;color:var(--t3);margin-right:8px}
-
-/* ── SCHEDULE ────────────────────────────────────────────────── */
-.sch-day{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--b1)}
-.sch-day:last-child{border-bottom:none}
-.day-lbl{width:36px;font-size:12px;font-weight:600;color:var(--t2)}
-.tbar{flex:1;height:7px;background:var(--s3);border-radius:10px;position:relative;overflow:hidden}
-.tblock{position:absolute;height:100%;border-radius:10px;top:0}
-.t-study{background:var(--accent)}.t-free{background:var(--green)}.t-block{background:var(--red)}
-.t-label{font-size:11px;color:var(--t2);width:90px;text-align:right}
-input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:10px;background:var(--s3);outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 4px rgba(108,99,255,.2);transition:box-shadow .2s}
-input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(108,99,255,.3)}
-
-/* ── CHART ───────────────────────────────────────────────────── */
-.chart-bars{display:flex;align-items:flex-end;gap:7px;height:110px;padding:0 4px}
-.cbar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
-.cbar-inner{flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end}
-.cbar{width:100%;border-radius:5px 5px 0 0;transition:height .6s cubic-bezier(.17,.67,.35,1);cursor:pointer}
-.cbar:hover{filter:brightness(1.2)}
-.cday{font-size:10px;color:var(--t3)}
-
-/* ── QR PANEL ────────────────────────────────────────────────── */
-.qr-panel{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:20px;text-align:center}
-#qrcode{display:flex;justify-content:center;margin:14px 0}
-#qrcode img,#qrcode canvas{border-radius:12px}
-.qr-code-str{font-family:monospace;font-size:11px;background:var(--s3);padding:6px 10px;border-radius:7px;color:var(--t2);margin-top:8px;word-break:break-all}
-
-/* ── SECTION HEADER ──────────────────────────────────────────── */
-.sec-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
-.sec-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
-.sec-sub{font-size:13px;color:var(--t2);margin-top:3px}
-
-/* ── ALERT BANNER ────────────────────────────────────────────── */
-.alert-banner{background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.25);border-radius:var(--rs);padding:13px 16px;display:flex;align-items:center;gap:11px;margin-bottom:18px;animation:fadeIn .3s ease}
-.alert-dismiss{cursor:pointer;color:var(--t3);padding:4px;margin-left:auto;font-size:18px}
-.alert-dismiss:hover{color:var(--red)}
-
-/* ── NOTIFICATION POPUP ──────────────────────────────────────── */
-#notif-popup{
-  position:fixed;bottom:24px;right:24px;background:var(--surface);
-  border:1px solid var(--b2);border-left:4px solid var(--red);
-  border-radius:var(--rs);padding:14px 16px;width:300px;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:9999;
-  display:none;gap:11px;align-items:flex-start;
-}
-#notif-popup.show{display:flex;animation:slideIn .4s cubic-bezier(.17,.67,.35,1.3)}
-@keyframes slideIn{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
-.np-body{flex:1}.np-title{font-weight:600;font-size:13px;margin-bottom:2px}
-.np-text{font-size:11px;color:var(--t2);line-height:1.4}
-.np-acts{display:flex;gap:7px;margin-top:9px}
-.np-allow{flex:1;padding:6px;background:rgba(0,229,160,.1);color:var(--green);border:1px solid rgba(0,229,160,.25);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
-.np-block{flex:1;padding:6px;background:rgba(255,77,109,.12);color:var(--red);border:1px solid rgba(255,77,109,.25);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
-.np-close{color:var(--t3);cursor:pointer;font-size:18px;flex-shrink:0}
-
-/* ── MODAL ───────────────────────────────────────────────────── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
-.modal-bg.open{opacity:1;pointer-events:all}
-.modal{background:var(--surface);border:1px solid var(--b2);border-radius:20px;padding:28px;width:440px;max-width:92vw;transform:scale(.9);transition:transform .25s cubic-bezier(.17,.67,.67,.35,1.3);box-shadow:0 40px 100px rgba(0,0,0,.6)}
-.modal-bg.open .modal{transform:scale(1)}
-.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px}
-.modal-sub{color:var(--t2);font-size:13px;margin-bottom:22px}
-.dur-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
-
-/* ── SCROLLBAR ───────────────────────────────────────────────── */
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--s3);border-radius:10px}
-
-/* ── LOADING ─────────────────────────────────────────────────── */
-.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+.auth-demo{text-align:center;margin-top:16px;color:var(--t2);font-size:13px}
+.auth-demo a{color:var(--accent);cursor:pointer;text-decoration:none}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-.skeleton{background:linear-gradient(90deg,var(--s2) 25%,var(--s3) 50%,var(--s2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;height:20px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* ── EMPTY STATE ─────────────────────────────────────────────── */
-.empty{text-align:center;padding:32px 20px;color:var(--t3)}
-.empty-icon{font-size:40px;margin-bottom:12px}
-.empty-text{font-size:14px}
+/* ── APP SHELL ── */
+#app{display:none;height:100vh;overflow:hidden}
+.shell{display:flex;height:100vh;position:relative;z-index:1}
+
+/* Sidebar */
+.sidebar{width:240px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s}
+.sidebar-header{padding:24px 20px 16px;border-bottom:1px solid var(--b1)}
+.sidebar-brand{font-family:'Clash Display',sans-serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
+.sidebar-brand-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--a2));display:flex;align-items:center;justify-content:center;font-size:18px}
+.sidebar-section{padding:16px 12px 8px;font-size:10px;font-weight:800;color:var(--t3);letter-spacing:1.2px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--t2);font-size:14px;font-weight:500;transition:all .2s;margin:1px 0;border:none;background:none;width:100%;text-align:left;font-family:'Cabinet Grotesk',sans-serif}
+.nav-item:hover{background:var(--s2);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(124,111,255,.2),rgba(255,110,180,.1));color:var(--text);border:1px solid rgba(124,111,255,.2)}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+
+/* Child pills in sidebar */
+.child-pills{padding:8px 12px}
+.child-pill{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;margin:3px 0;border:1px solid transparent;transition:all .2s}
+.child-pill:hover,.child-pill.active{background:var(--s2);border-color:var(--b2)}
+.child-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.child-pill-info .name{font-size:13px;font-weight:600}
+.child-pill-info .status{font-size:11px;color:var(--t2)}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--a3);margin-left:auto;flex-shrink:0;box-shadow:0 0 6px var(--a3)}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:var(--t3);margin-left:auto;flex-shrink:0}
+
+.sidebar-footer{margin-top:auto;padding:16px 12px;border-top:1px solid var(--b1)}
+.logout-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--t2);font-size:14px;border:none;background:none;width:100%;font-family:'Cabinet Grotesk',sans-serif;transition:all .2s}
+.logout-btn:hover{background:var(--s2);color:var(--red)}
+
+/* Main */
+.main{flex:1;overflow-y:auto;overflow-x:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--b1);background:rgba(13,14,23,.8);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100}
+.topbar-left h1{font-family:'Clash Display',sans-serif;font-size:22px;font-weight:700}
+.topbar-left p{color:var(--t2);font-size:13px;margin-top:2px}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn{padding:9px 18px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-study{background:rgba(0,232,176,.15);color:var(--a3);border:1px solid rgba(0,232,176,.3)}
+.btn-study.on{background:rgba(0,232,176,.25);box-shadow:0 0 20px rgba(0,232,176,.2)}
+.btn-lock{background:rgba(255,79,110,.15);color:var(--red);border:1px solid rgba(255,79,110,.3)}
+.btn-lock:hover{background:rgba(255,79,110,.25)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--a2));color:white}
+.btn-primary:hover{opacity:.9}
+.btn-ghost{background:var(--s2);color:var(--text);border:1px solid var(--b2)}
+.btn-ghost:hover{background:var(--s3)}
+.notif-btn{width:38px;height:38px;border-radius:10px;background:var(--s2);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;position:relative;transition:background .2s}
+.notif-btn:hover{background:var(--s3)}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--s1)}
+
+.page{display:none;padding:28px;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:20px}
+.card-title{font-family:'Clash Display',sans-serif;font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* Stat cards */
+.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;inset:0;opacity:.05;pointer-events:none}
+.stat-icon{font-size:24px;margin-bottom:12px}
+.stat-value{font-family:'Clash Display',sans-serif;font-size:28px;font-weight:700}
+.stat-label{font-size:12px;color:var(--t2);margin-top:4px}
+.stat-delta{font-size:11px;margin-top:8px;padding:3px 8px;border-radius:20px;display:inline-block}
+.stat-delta.up{background:rgba(255,79,110,.15);color:var(--red)}
+.stat-delta.down{background:rgba(0,232,176,.15);color:var(--a3)}
+
+/* Child cards */
+.child-card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:24px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer}
+.child-card:hover{transform:translateY(-2px);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.child-card-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.child-card-avatar{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.child-card-name{font-family:'Clash Display',sans-serif;font-size:18px;font-weight:700}
+.child-card-sub{font-size:12px;color:var(--t2);margin-top:2px}
+.child-card-status{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.status-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.status-online{background:rgba(0,232,176,.15);color:var(--a3)}
+.status-offline{background:rgba(85,93,122,.2);color:var(--t2)}
+.status-locked{background:rgba(255,79,110,.15);color:var(--red)}
+.status-study{background:rgba(79,179,255,.15);color:var(--blue)}
+
+/* Progress bars */
+.progress-wrap{margin:12px 0}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:6px}
+.progress-label span:last-child{font-weight:600;color:var(--text)}
+.progress-bar{height:6px;background:var(--s3);border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;border-radius:10px;transition:width .5s ease}
+
+/* Quick actions */
+.quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.qa-btn{padding:8px 14px;border-radius:8px;border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px}
+.qa-btn:hover{background:var(--s3);color:var(--text)}
+.qa-btn.danger:hover{background:rgba(255,79,110,.15);color:var(--red);border-color:rgba(255,79,110,.3)}
+
+/* Activity feed */
+.activity-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--b1)}
+.activity-item:last-child{border-bottom:none}
+.activity-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.activity-blocked{background:rgba(255,79,110,.15)}
+.activity-allowed{background:rgba(0,232,176,.1)}
+.activity-info{flex:1}
+.activity-title{font-size:13px;font-weight:600}
+.activity-sub{font-size:11px;color:var(--t2);margin-top:2px}
+.activity-time{font-size:11px;color:var(--t3)}
+.activity-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.blocked-badge{background:rgba(255,79,110,.15);color:var(--red)}
+.allowed-badge{background:rgba(0,232,176,.1);color:var(--a3)}
+
+/* Settings */
+.settings-section{margin-bottom:28px}
+.settings-section-title{font-family:'Clash Display',sans-serif;font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--b1)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:500}
+.setting-desc{font-size:12px;color:var(--t2);margin-top:3px}
+.setting-control{flex-shrink:0;margin-left:16px}
+
+/* Toggle */
+.toggle{position:relative;width:46px;height:26px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--s3);border-radius:26px;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+.toggle input:checked + .toggle-slider{background:var(--accent)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
+
+/* Time picker */
+.time-picker{display:flex;gap:6px;align-items:center}
+.time-input{width:60px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:14px;font-family:'Cabinet Grotesk',sans-serif;text-align:center;outline:none}
+.time-input:focus{border-color:var(--accent)}
+.time-sep{color:var(--t2);font-weight:700}
+
+/* Range slider */
+.range-wrap{display:flex;align-items:center;gap:12px}
+.range-val{font-size:14px;font-weight:700;color:var(--accent);min-width:50px;text-align:right}
+input[type=range]{-webkit-appearance:none;height:4px;background:var(--s3);border-radius:10px;outline:none;flex:1}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(124,111,255,.5)}
+
+/* Chart */
+.chart-wrap{height:120px;display:flex;align-items:flex-end;gap:4px;padding:8px 0}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;transition:height .5s ease;min-height:4px}
+.chart-label{font-size:10px;color:var(--t2)}
+
+/* Reward system */
+.reward-card{background:linear-gradient(135deg,rgba(124,111,255,.15),rgba(255,110,180,.1));border:1px solid rgba(124,111,255,.2);border-radius:16px;padding:20px}
+.reward-coins{font-family:'Clash Display',sans-serif;font-size:36px;font-weight:700;color:var(--amber)}
+.reward-label{font-size:12px;color:var(--t2);margin-top:4px}
+
+/* Request cards */
+.request-card{background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:16px;margin-bottom:10px}
+.request-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.request-actions{display:flex;gap:8px;margin-top:12px}
+.btn-approve{padding:8px 16px;border-radius:8px;background:rgba(0,232,176,.15);color:var(--a3);border:1px solid rgba(0,232,176,.3);font-size:12px;font-weight:700;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif}
+.btn-deny{padding:8px 16px;border-radius:8px;background:rgba(255,79,110,.1);color:var(--red);border:1px solid rgba(255,79,110,.2);font-size:12px;font-weight:700;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif}
+
+/* Mood tracker */
+.mood-row{display:flex;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--b1)}
+.mood-emoji{font-size:22px}
+.mood-bar-wrap{flex:1;height:8px;background:var(--s3);border-radius:10px;overflow:hidden;margin:0 10px}
+.mood-bar-fill{height:100%;border-radius:10px}
+.mood-count{font-size:12px;color:var(--t2);min-width:30px;text-align:right}
+
+/* Focus score */
+.focus-score-ring{width:100px;height:100px;position:relative;margin:0 auto 12px}
+.focus-score-ring svg{transform:rotate(-90deg)}
+.focus-score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.focus-score-num{font-family:'Clash Display',sans-serif;font-size:26px;font-weight:700}
+.focus-score-lbl{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px}
+
+/* Geofence */
+.geo-status{display:flex;align-items:center;gap:10px;padding:14px;background:var(--s2);border-radius:12px;margin-bottom:10px}
+.geo-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.geo-home{background:var(--a3);box-shadow:0 0 8px var(--a3)}
+.geo-away{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+/* Pair page */
+.pair-child-btn{background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;text-align:left;width:100%;margin-bottom:8px;font-family:'Cabinet Grotesk',sans-serif}
+.pair-child-btn.selected,.pair-child-btn:hover{border-color:var(--accent);background:rgba(124,111,255,.1)}
+.pair-child-btn .pname{font-size:14px;font-weight:700;color:var(--text)}
+.pair-child-btn .psub{font-size:12px;color:var(--t2);margin-top:2px}
+.qr-wrap{background:var(--s2);border-radius:16px;padding:24px;text-align:center;border:1px solid var(--b2)}
+#qrcode{display:flex;justify-content:center;margin:16px 0}
+#qrcode img{border-radius:12px}
+.pair-code-str{font-family:monospace;font-size:10px;background:var(--s3);padding:8px 12px;border-radius:8px;color:var(--t2);word-break:break-all;margin-top:8px}
+
+/* Schedule */
+.schedule-day{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--b1)}
+.schedule-day-name{width:80px;font-size:13px;font-weight:600}
+.schedule-times{display:flex;gap:8px;flex:1;align-items:center;flex-wrap:wrap}
+.schedule-chip{background:var(--s3);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--t2)}
+
+/* App rules */
+.app-rule-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--b1)}
+.app-rule-icon{width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.app-rule-name{flex:1;font-size:13px;font-weight:600}
+.app-rule-sub{font-size:11px;color:var(--t2);margin-top:2px}
+
+/* Toast */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:toastIn .3s ease;max-width:320px}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast.green{border-color:rgba(0,232,176,.3);color:var(--a3)}
+.toast.red{border-color:rgba(255,79,110,.3);color:var(--red)}
+.toast.blue{border-color:rgba(79,179,255,.3);color:var(--blue)}
+.toast.amber{border-color:rgba(255,190,79,.3);color:var(--amber)}
+
+/* Mobile menu */
+.mobile-toggle{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;background:var(--s2);border:1px solid var(--b2);border-radius:20px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;color:var(--text)}
+
+/* Section heading */
+.section-header{margin-bottom:20px}
+.section-header h2{font-family:'Clash Display',sans-serif;font-size:20px;font-weight:700}
+.section-header p{color:var(--t2);font-size:13px;margin-top:4px}
+
+/* Empty state */
+.empty-state{text-align:center;padding:48px 20px;color:var(--t2)}
+.empty-state .es-icon{font-size:48px;margin-bottom:16px}
+.empty-state .es-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-state .es-desc{font-size:13px;line-height:1.6}
+
+/* Input row */
+.input-row{display:flex;gap:10px;align-items:flex-end}
+.input-row .field{flex:1;margin-bottom:0}
+
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{width:100%}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .mobile-toggle{display:flex}
+  .page{padding:16px}
+  .topbar{padding:16px}
+}
 </style>
 </head>
 <body>
+<div class="ambient">
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+</div>
 
-<!-- ═══ AUTH SCREEN ═══════════════════════════════════════════════════════ -->
+<!-- AUTH -->
 <div id="auth-screen">
-<div class="auth-card">
-  <div class="auth-logo">
-    <div class="auth-logo-icon">🛡️</div>
-    <div class="auth-title">Guardian</div>
-    <div class="auth-sub">Family Control Center</div>
-  </div>
-  <div class="auth-tabs">
-    <button class="auth-tab active" onclick="switchAuthTab('login',this)">Sign In</button>
-    <button class="auth-tab" onclick="switchAuthTab('register',this)">Create Account</button>
-  </div>
-
-  <!-- Login form -->
-  <div id="form-login">
-    <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="mom@family.com" autocomplete="email"/></div>
-    <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"/></div>
-    <div class="server-field">🌐 <input id="l-server" placeholder="Server URL (e.g. guardian.yourdomain.com)" value="guardian-server-production.up.railway.app"/></div>
-    <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In</button>
-    <div class="auth-err" id="login-err"></div>
-    <div style="text-align:center;margin-top:14px">
-      <button onclick="demoMode()" style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">
-        👀 Try demo (no server needed)
-      </button>
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="auth-icon">🛡️</div>
+      <div class="auth-brand">Guardian</div>
+      <div class="auth-tagline">Family Control Center — Built Different</div>
     </div>
-  </div>
-
-  <!-- Register form -->
-  <div id="form-register" style="display:none">
-    <div class="field-row">
-      <div class="field"><label>Your Name</label><input type="text" id="r-name" placeholder="Mom"/></div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login',this)">Sign In</button>
+        <button class="auth-tab" onclick="switchTab('register',this)">Create Account</button>
+      </div>
+      <div id="form-login">
+        <div class="field"><label>Email</label><input id="l-email" type="email" placeholder="mom@family.com"/></div>
+        <div class="field"><label>Password</label><input id="l-pass" type="password" placeholder="••••••••"/></div>
+        <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+        <div class="auth-err" id="login-err"></div>
+      </div>
+      <div id="form-register" style="display:none">
+        <div class="field"><label>Your Name</label><input id="r-name" type="text" placeholder="e.g. Afia"/></div>
+        <div class="field"><label>Email</label><input id="r-email" type="email" placeholder="mom@family.com"/></div>
+        <div class="field"><label>Password (min 8 chars)</label><input id="r-pass" type="password" placeholder="••••••••"/></div>
+        <button class="auth-btn" id="reg-btn" onclick="doRegister()">Create Account</button>
+        <div class="auth-err" id="reg-err"></div>
+      </div>
+      <div class="auth-demo"><a onclick="launchDemo()">🎮 Try demo (no server needed)</a></div>
     </div>
-    <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="mom@family.com"/></div>
-    <div class="field"><label>Password</label><input type="password" id="r-pass" placeholder="Create password (8+ chars)"/></div>
-    <div class="server-field">🌐 <input id="r-server" placeholder="Your server URL" value="guardian-server-production.up.railway.app"/></div>
-    <button class="auth-btn" id="register-btn" onclick="doRegister()">Create Account</button>
-    <div class="auth-err" id="register-err"></div>
   </div>
 </div>
-</div>
 
-<!-- ═══ CONNECTION BAR ═════════════════════════════════════════════════════ -->
-<div id="conn-bar">
-  <span id="conn-bar-icon">⚠️</span>
-  <span id="conn-bar-text">Connecting to Guardian server…</span>
-</div>
-
-<!-- ═══ APP ════════════════════════════════════════════════════════════════ -->
-<div class="app" id="app-shell" style="display:none">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="logo">
-      <div class="logo-icon">🛡️</div>
-      <div><div class="logo-text">Guardian</div><div class="logo-sub">Family Control Center</div></div>
-    </div>
-
-    <div class="nav-section">
-      <div class="nav-label">Overview</div>
-      <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</div>
-      <div class="nav-item" onclick="nav('liveview',this)"><span class="nav-icon">📱</span>Live View<span class="nav-badge" id="alert-badge" style="display:none">0</span></div>
-      <div class="nav-item" onclick="nav('activity',this)"><span class="nav-icon">⚡</span>Activity Feed</div>
-    </div>
-    <div class="nav-section">
-      <div class="nav-label">Controls</div>
-      <div class="nav-item" onclick="nav('apps',this)"><span class="nav-icon">📦</span>App Manager</div>
-      <div class="nav-item" onclick="nav('webfilter',this)"><span class="nav-icon">🌐</span>Web Filter</div>
-      <div class="nav-item" onclick="nav('schedule',this)"><span class="nav-icon">⏰</span>Schedule & Limits</div>
-    </div>
-    <div class="nav-section">
-      <div class="nav-label">Insights</div>
-      <div class="nav-item" onclick="nav('reports',this)"><span class="nav-icon">📈</span>Reports</div>
-      <div class="nav-item" onclick="nav('pairing',this)"><span class="nav-icon">🔗</span>Add Device</div>
-      <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
-    </div>
-
-    <div class="sidebar-footer">
-      <div class="conn-pill"><div class="conn-dot" id="ws-dot"></div><span id="ws-label" style="font-size:12px;color:var(--t2)">Connecting…</span></div>
-      <div class="parent-info">
-        <div class="parent-av" id="parent-av">M</div>
-        <div><div style="font-size:13px;font-weight:500" id="parent-name">Parent</div>
-        <button class="logout-btn" onclick="Guardian.logout()">Sign out</button></div>
+<!-- APP -->
+<div id="app">
+  <div class="shell">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand"><div class="sidebar-brand-icon">🛡️</div> Guardian</div>
       </div>
-    </div>
-  </aside>
 
-  <!-- MAIN -->
-  <main class="main">
-    <!-- TOPBAR -->
-    <div class="topbar">
-      <div class="topbar-title" id="page-title">Overview Dashboard</div>
-      <div class="topbar-right">
-        <button class="study-btn" id="study-btn" onclick="toggleStudyAll()">📚 Study Mode <span id="study-st">OFF</span></button>
-        <button class="lock-btn" id="lock-btn" onclick="emergencyLockAll()">🔒 Lock All</button>
-        <div class="notif-btn" onclick="toggleNotifPanel()">🔔<div class="notif-dot" id="notif-dot"></div></div>
+      <div class="sidebar-section">Overview</div>
+      <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="nav('activity',this)"><span class="nav-icon">⚡</span> Activity Feed <span class="nav-badge" id="activity-badge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="nav('requests',this)"><span class="nav-icon">🙋</span> Requests <span class="nav-badge" id="req-badge" style="display:none">0</span></div>
+
+      <div class="sidebar-section">Controls</div>
+      <div class="nav-item" onclick="nav('apps',this)"><span class="nav-icon">📱</span> App Rules</div>
+      <div class="nav-item" onclick="nav('web',this)"><span class="nav-icon">🌐</span> Web Filter</div>
+      <div class="nav-item" onclick="nav('schedule',this)"><span class="nav-icon">🕐</span> Schedule & Limits</div>
+      <div class="nav-item" onclick="nav('rewards',this)"><span class="nav-icon">🏆</span> Rewards</div>
+
+      <div class="sidebar-section">Insights</div>
+      <div class="nav-item" onclick="nav('mood',this)"><span class="nav-icon">💚</span> Mood Tracker</div>
+      <div class="nav-item" onclick="nav('focus',this)"><span class="nav-icon">🎯</span> Focus Score</div>
+      <div class="nav-item" onclick="nav('reports',this)"><span class="nav-icon">📈</span> Reports</div>
+
+      <div class="sidebar-section">Setup</div>
+      <div class="nav-item" onclick="nav('pair',this)"><span class="nav-icon">🔗</span> Add Device</div>
+      <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span> Settings</div>
+
+      <div class="sidebar-section">Children</div>
+      <div class="child-pills" id="child-pills"></div>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">🚪 Sign Out</button>
       </div>
     </div>
 
-    <!-- ═══ DASHBOARD ═══ -->
-    <div class="page active" id="page-dashboard">
-      <div id="alert-banners"></div>
-      <div class="g4" style="margin-bottom:18px" id="stat-cards">
-        <div class="stat-card"><div class="stat-icon si-g">📱</div><div><div class="stat-val" style="color:var(--green)" id="s-online">–</div><div class="stat-lbl">Devices Online</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-a">⏱️</div><div><div class="stat-val" style="color:var(--amber)" id="s-time">–</div><div class="stat-lbl">Screen Time Today</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-r">🚫</div><div><div class="stat-val" style="color:var(--red)" id="s-blocks">–</div><div class="stat-lbl">Blocks Today</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-p">📚</div><div><div class="stat-val" style="color:var(--accent)" id="s-study">–</div><div class="stat-lbl">Study Sessions</div></div></div>
-      </div>
-      <div class="g2" style="margin-bottom:18px" id="child-cards-area">
-        <div class="skeleton" style="height:240px;border-radius:var(--r)"></div>
-        <div class="skeleton" style="height:240px;border-radius:var(--r)"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">⚡ Live Activity <span class="live-badge"><span class="live-dot"></span>LIVE</span></div>
-        <div id="activity-feed"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No activity yet — devices will appear here when connected</div></div></div>
-      </div>
-    </div>
-
-    <!-- ═══ LIVE VIEW ═══ -->
-    <div class="page" id="page-liveview">
-      <div class="g2" id="mirror-area">
-        <div class="skeleton" style="height:500px;border-radius:var(--r)"></div>
-        <div class="skeleton" style="height:500px;border-radius:var(--r)"></div>
-      </div>
-      <div class="card" style="margin-top:18px">
-        <div class="card-title">⚡ Quick Remote Actions</div>
-        <div class="g4">
-          <button class="btn bd btn-wide" onclick="emergencyLockAll()">🔒 Lock All Devices</button>
-          <button class="btn bgreen btn-wide" onclick="toggleStudyAll()">📚 Toggle Study Mode</button>
-          <button class="btn bg_ btn-wide" onclick="screenshotAll()">📸 Screenshot Both</button>
-          <button class="btn bblue btn-wide" onclick="messageAll()">💬 Message Both Kids</button>
+    <!-- Main content -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-sub">Good morning — here's your family overview</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-study" id="study-all-btn" onclick="toggleStudyAll()">📚 Study Mode <span id="study-label">OFF</span></button>
+          <button class="btn btn-lock" onclick="lockAll()">🔒 Lock All</button>
+          <div class="notif-btn" onclick="nav('requests',null)">🔔<div class="notif-dot" id="notif-dot" style="display:none"></div></div>
         </div>
       </div>
-    </div>
 
-    <!-- ═══ ACTIVITY ═══ -->
-    <div class="page" id="page-activity">
-      <div class="g2">
-        <div>
-          <div class="tabs">
-            <button class="tab active" onclick="filterFeed('all',this)">All</button>
-            <button class="tab" onclick="filterFeed('blocks',this)">Alerts Only</button>
-            <button class="tab" onclick="filterFeed('study',this)">Study</button>
-          </div>
-          <div id="full-activity-list"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Loading activity…</div></div></div>
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="grid-4" style="margin-bottom:20px" id="stat-cards">
+          <div class="stat-card"><div class="stat-icon">👶</div><div class="stat-value" id="stat-children">2</div><div class="stat-label">Children</div></div>
+          <div class="stat-card"><div class="stat-icon">📱</div><div class="stat-value" id="stat-online">0</div><div class="stat-label">Devices Online</div></div>
+          <div class="stat-card"><div class="stat-icon">🚫</div><div class="stat-value" id="stat-blocks">0</div><div class="stat-label">Blocked Today</div></div>
+          <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-value" id="stat-screentime">0h</div><div class="stat-label">Total Screen Time</div></div>
         </div>
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">📊 Today at a Glance</div>
-            <div id="daily-summary"><div class="skeleton" style="height:120px"></div></div>
+        <div id="child-cards" class="grid-2" style="margin-bottom:20px"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">📊 This Week</div>
+            <div class="chart-wrap" id="week-chart"></div>
           </div>
           <div class="card">
-            <div class="card-title">🔔 Recent Alerts</div>
-            <div id="alert-list"><div class="empty"><div class="empty-text" style="font-size:13px;padding:12px 0">No alerts today 🎉</div></div></div>
+            <div class="card-title">⚡ Recent Activity</div>
+            <div id="recent-activity-list"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ═══ APP MANAGER ═══ -->
-    <div class="page" id="page-apps">
-      <div class="tabs" id="app-child-tabs">
-        <button class="tab active" onclick="showChildApps(0,this)">Michele's Apps</button>
-        <button class="tab" onclick="showChildApps(1,this)">Nana Yhaa's Apps</button>
-      </div>
-      <div id="apps-content">
-        <div class="g2">
-          <div class="card"><div class="card-title">🎮 Games & Entertainment</div><div id="app-list-games"><div class="skeleton" style="height:200px"></div></div></div>
-          <div class="card"><div class="card-title">📚 Educational Apps</div><div id="app-list-edu"><div class="skeleton" style="height:200px"></div></div></div>
-        </div>
-        <div class="card" style="margin-top:18px">
-          <div class="card-title">📚 Study Mode — Allowed Apps Only</div>
-          <div style="color:var(--t2);font-size:13px;margin-bottom:12px">When Study Mode activates, only these apps are accessible:</div>
-          <div id="study-allowlist" style="display:flex;flex-wrap:wrap;gap:7px">
-            <span class="chip cg">📖 Khan Academy</span><span class="chip cg">🔢 Prodigy Math</span>
-            <span class="chip cg">🌍 Duolingo</span><span class="chip cb" style="cursor:pointer" onclick="addStudyApp()">+ Add App</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ WEB FILTER ═══ -->
-    <div class="page" id="page-webfilter">
-      <div class="g2">
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">📂 Category Filters</div>
-            <div id="cat-filters">
-              <div class="fcat"><div class="fcat-icon" style="background:rgba(255,77,109,.12)">🔞</div><div class="fcat-name">Adult Content</div><div class="fcat-count">Always blocked</div><div class="toggle on" style="background:var(--red);border-color:var(--red)"></div></div>
-              <div class="fcat"><div class="fcat-icon" style="background:rgba(255,77,109,.12)">⚔️</div><div class="fcat-name">Violence & Gore</div><div class="fcat-count">Always blocked</div><div class="toggle on" style="background:var(--red);border-color:var(--red)"></div></div>
-              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(255,179,71,.12)">🎬</div><div class="fcat-name">Entertainment / Video</div><div class="fcat-count">Study blocked</div><div class="toggle on" id="fc-ent"></div></div>
-              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(255,179,71,.12)">🎮</div><div class="fcat-name">Gaming Sites</div><div class="fcat-count">After 6PM</div><div class="toggle on" id="fc-game"></div></div>
-              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(255,77,109,.12)">💬</div><div class="fcat-name">Social Media</div><div class="fcat-count">Always blocked</div><div class="toggle on" id="fc-social"></div></div>
-              <div class="fcat" onclick="toggleFcat(this)"><div class="fcat-icon" style="background:rgba(0,229,160,.12)">📚</div><div class="fcat-name">Education</div><div class="fcat-count">Always allowed</div><div class="toggle on-g" id="fc-edu"></div></div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-title">🚫 Custom Blocked Sites</div>
-            <div class="inp-row">
-              <input class="inp" id="block-inp" placeholder="e.g. instagram.com" onkeydown="if(event.key==='Enter')addBlock()"/>
-              <button class="add-btn" onclick="addBlock()">Block</button>
-            </div>
-            <div id="blocked-list"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">✅ Always Allowed Sites</div>
-            <div class="inp-row">
-              <input class="inp" id="allow-inp" placeholder="e.g. pbskids.org" onkeydown="if(event.key==='Enter')addAllow()"/>
-              <button class="add-btn green" onclick="addAllow()">Allow</button>
-            </div>
-            <div id="allowed-list"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ SCHEDULE ═══ -->
-    <div class="page" id="page-schedule">
-      <div class="g2">
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">⏱️ Daily Screen Time Limits</div>
-            <div style="margin-bottom:22px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <div><div style="font-size:13px;font-weight:600">🧒 Michele — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
-                <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)" id="sofia-lim">3h 0m</div>
-              </div>
-              <input type="range" min="0.5" max="8" value="3" step="0.5" oninput="updateLim('sofia',this.value)"/>
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3);margin-top:3px"><span>30min</span><span>8h</span></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <div><div style="font-size:13px;font-weight:600">🧒 Nana Yhaa — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
-                <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)" id="emma-lim">3h 0m</div>
-              </div>
-              <input type="range" min="0.5" max="8" value="3" step="0.5" oninput="updateLim('emma',this.value)"/>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">📚 Study Schedule</div>
-            <div id="study-schedule">
-              <div class="sch-day"><div class="day-lbl">Mon</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
-              <div class="sch-day"><div class="day-lbl">Tue</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
-              <div class="sch-day"><div class="day-lbl">Wed</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
-              <div class="sch-day"><div class="day-lbl">Thu</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:25%"></div></div><div class="t-label">3:30 – 5:00 PM</div></div>
-              <div class="sch-day"><div class="day-lbl">Fri</div><div class="tbar"><div class="tblock t-study" style="left:35%;width:17%"></div></div><div class="t-label">3:30 – 4:30 PM</div></div>
-              <div class="sch-day"><div class="day-lbl">Sat</div><div class="tbar"><div class="tblock t-free" style="left:5%;width:75%"></div></div><div class="t-label">Free day</div></div>
-              <div class="sch-day"><div class="day-lbl">Sun</div><div class="tbar"><div class="tblock t-free" style="left:5%;width:75%"></div></div><div class="t-label">Free day</div></div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-title">🌙 Bedtime Lock</div>
-            <div style="display:flex;flex-direction:column;gap:14px">
-              <div style="display:flex;align-items:center;justify-content:space-between">
-                <div><div style="font-size:13px;font-weight:500">Auto Bedtime Lock</div><div style="font-size:11px;color:var(--t2)">Locks tablets at bedtime every night</div></div>
-                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
-                <div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center">
-                  <div style="font-size:11px;color:var(--t2);margin-bottom:4px">Bedtime (Lock)</div>
-                  <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent)">8:30 PM</div>
-                  <div style="font-size:11px;color:var(--t3)">Weekdays</div>
-                </div>
-                <div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center">
-                  <div style="font-size:11px;color:var(--t2);margin-bottom:4px">Wake Time</div>
-                  <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--green)">7:00 AM</div>
-                  <div style="font-size:11px;color:var(--t3)">Next day</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">🎯 Smart Rules</div>
-            <div style="display:flex;flex-direction:column;gap:14px">
-              <div style="display:flex;align-items:center;justify-content:space-between">
-                <div><div style="font-size:13px;font-weight:500">Games only after homework</div><div style="font-size:11px;color:var(--t2)">Study mode must complete before games unlock</div></div>
-                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between">
-                <div><div style="font-size:13px;font-weight:500">Weekend +1hr bonus</div><div style="font-size:11px;color:var(--t2)">Automatically extends limit on weekends</div></div>
-                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between">
-                <div><div style="font-size:13px;font-weight:500">Alert at 80% screen time</div><div style="font-size:11px;color:var(--t2)">Push notification when limit is almost reached</div></div>
-                <div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between">
-                <div><div style="font-size:13px;font-weight:500">Lock after 3 block violations</div><div style="font-size:11px;color:var(--t2)">Auto-lock for 10 min after repeated attempts</div></div>
-                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ REPORTS ═══ -->
-    <div class="page" id="page-reports">
-      <div class="g4" style="margin-bottom:18px">
-        <div class="stat-card"><div class="stat-icon si-g">⏱️</div><div><div class="stat-val" style="color:var(--green)" id="r-total">–</div><div class="stat-lbl">Total This Week</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-p">📚</div><div><div class="stat-val" style="color:var(--accent)" id="r-study">–</div><div class="stat-lbl">Study Time</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-r">🚫</div><div><div class="stat-val" style="color:var(--red)" id="r-blocks">–</div><div class="stat-lbl">Blocks This Week</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-a">🏆</div><div><div class="stat-val" style="color:var(--amber)" id="r-days">–</div><div class="stat-lbl">Study Days Met</div></div></div>
-      </div>
-      <div class="g2">
+      <!-- ACTIVITY -->
+      <div class="page" id="page-activity">
+        <div class="section-header"><h2>Activity Feed</h2><p>Real-time log of everything happening on your children's devices</p></div>
         <div class="card">
-          <div class="card-title">📊 Screen Time — Last 7 Days</div>
-          <div class="chart-bars" id="week-chart">
-            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:65%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Mon</div></div>
-            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:80%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Tue</div></div>
-            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:50%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Wed</div></div>
-            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:90%;background:linear-gradient(180deg,var(--amber),rgba(255,179,71,.3))"></div></div><div class="cday">Thu</div></div>
-            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:60%;background:linear-gradient(180deg,var(--accent),rgba(108,99,255,.3))"></div></div><div class="cday">Fri</div></div>
-            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:100%;background:linear-gradient(180deg,var(--red),rgba(255,77,109,.3))"></div></div><div class="cday">Sat</div></div>
-            <div class="cbar-col"><div class="cbar-inner"><div class="cbar" style="height:75%;background:linear-gradient(180deg,var(--amber),rgba(255,179,71,.3))"></div></div><div class="cday">Sun</div></div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <select id="activity-filter-child" style="background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:13px;outline:none">
+              <option value="">All Children</option>
+            </select>
+            <select id="activity-filter-type" style="background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:13px;outline:none">
+              <option value="">All Events</option>
+              <option value="blocked">Blocked Only</option>
+              <option value="app">App Opens</option>
+              <option value="web">Web Visits</option>
+            </select>
+            <button class="btn btn-ghost" onclick="loadActivity()" style="padding:8px 14px;font-size:13px">🔄 Refresh</button>
           </div>
-        </div>
-        <div class="card">
-          <div class="card-title">📱 Top Apps This Week</div>
-          <div id="top-apps"><div class="skeleton" style="height:180px"></div></div>
+          <div id="activity-list"></div>
         </div>
       </div>
-    </div>
 
-    <!-- ═══ PAIRING ═══ -->
-    <div class="page" id="page-pairing">
-      <div class="sec-head"><div><div class="sec-title">🔗 Add a New Device</div><div class="sec-sub">Pair a child's tablet to Guardian in 30 seconds</div></div></div>
-      <div class="g2">
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">Step 1 — Choose Child</div>
-            <div id="pair-child-select" style="display:flex;flex-direction:column;gap:9px">
-              <div class="skeleton" style="height:60px;border-radius:12px"></div>
+      <!-- REQUESTS -->
+      <div class="page" id="page-requests">
+        <div class="section-header"><h2>Requests</h2><p>Your children are asking for extra screen time or app access</p></div>
+        <div id="requests-list">
+          <div class="empty-state"><div class="es-icon">🎉</div><div class="es-title">No pending requests</div><div class="es-desc">When your children request extra time or app access, it will appear here for you to approve or deny.</div></div>
+        </div>
+      </div>
+
+      <!-- APP RULES -->
+      <div class="page" id="page-apps">
+        <div class="section-header"><h2>App Rules</h2><p>Control which apps your children can use and for how long</p></div>
+        <div class="grid-2">
+          <div>
+            <div style="margin-bottom:12px;display:flex;gap:8px">
+              <select id="app-child-sel" style="background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:13px;flex:1;outline:none"></select>
             </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Step 2 — Install Guardian on Tablet</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div style="background:var(--s2);border-radius:10px;padding:14px">
-                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--green)">📱 Android (Michele's Tablet)</div>
-                <div style="font-size:12px;color:var(--t2);line-height:1.6">1. Download <strong>Guardian Child Agent APK</strong> from your server<br/>2. Enable "Install from unknown sources" in Settings<br/>3. Install and open the app<br/>4. Scan the QR code below</div>
+            <div class="card">
+              <div class="card-title">🚫 Blocked Apps</div>
+              <div id="blocked-apps-list"></div>
+              <div style="margin-top:16px;display:flex;gap:8px">
+                <input id="new-app-pkg" placeholder="com.example.app" style="flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:13px;outline:none"/>
+                <input id="new-app-name" placeholder="App name" style="width:120px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:13px;outline:none"/>
+                <button class="btn btn-primary" onclick="addAppRule()" style="padding:9px 14px;font-size:13px">Block</button>
               </div>
-              <div style="background:var(--s2);border-radius:10px;padding:14px">
-                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">🍎 iPad (Nana Yhaa's Tablet)</div>
-                <div style="font-size:12px;color:var(--t2);line-height:1.6">1. Install <strong>Guardian</strong> from the App Store<br/>2. Open the app<br/>3. Scan the QR code below<br/>4. Approve FamilyControls permission</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">⏱️ App Time Limits</div>
+            <p style="font-size:13px;color:var(--t2);margin-bottom:16px">Set daily time limits per app category</p>
+            <div id="app-time-limits">
+              <div class="setting-row"><div><div class="setting-label">📺 YouTube / Video</div></div><div class="setting-control range-wrap" style="gap:8px"><input type="range" min="0" max="180" value="60" oninput="this.nextElementSibling.textContent=this.value+'m'" style="width:100px"/><span class="range-val">60m</span></div></div>
+              <div class="setting-row"><div><div class="setting-label">🎮 Games</div></div><div class="setting-control range-wrap" style="gap:8px"><input type="range" min="0" max="180" value="45" oninput="this.nextElementSibling.textContent=this.value+'m'" style="width:100px"/><span class="range-val">45m</span></div></div>
+              <div class="setting-row"><div><div class="setting-label">💬 Social Media</div></div><div class="setting-control range-wrap" style="gap:8px"><input type="range" min="0" max="120" value="30" oninput="this.nextElementSibling.textContent=this.value+'m'" style="width:100px"/><span class="range-val">30m</span></div></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;width:100%" onclick="showToast('App time limits saved ✓','green')">Save Limits</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEB FILTER -->
+      <div class="page" id="page-web">
+        <div class="section-header"><h2>Web Filter</h2><p>Block websites and categories across all devices</p></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">🚫 Blocked Categories</div>
+            <p style="font-size:13px;color:var(--t2);margin-bottom:16px">Toggle entire categories off instantly</p>
+            <div id="web-categories">
+              <div class="setting-row"><div><div class="setting-label">🔞 Adult Content</div><div class="setting-desc">Pornography and explicit sites</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked onchange="saveWebCategory('adult',this.checked)"/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">🎰 Gambling</div><div class="setting-desc">Betting and casino sites</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked onchange="saveWebCategory('gambling',this.checked)"/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">💀 Violence & Gore</div><div class="setting-desc">Graphic violent content</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked onchange="saveWebCategory('violence',this.checked)"/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">😡 Hate Speech</div><div class="setting-desc">Extremist and hateful content</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked onchange="saveWebCategory('hate',this.checked)"/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">🎮 Gaming Sites</div><div class="setting-desc">Online gaming platforms</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" onchange="saveWebCategory('gaming',this.checked)"/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">📱 Social Media</div><div class="setting-desc">TikTok, Instagram, etc.</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" onchange="saveWebCategory('social',this.checked)"/><span class="toggle-slider"></span></label></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🔗 Custom Blocked Sites</div>
+            <div id="website-rules-list"></div>
+            <div style="margin-top:16px;display:flex;gap:8px">
+              <input id="new-domain" placeholder="e.g. tiktok.com" style="flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:13px;outline:none"/>
+              <button class="btn btn-primary" onclick="addWebRule()" style="padding:9px 14px;font-size:13px">Block</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCHEDULE -->
+      <div class="page" id="page-schedule">
+        <div class="section-header"><h2>Schedule & Limits</h2><p>Set screen time, bedtime, and study schedules per child</p></div>
+        <div style="margin-bottom:16px">
+          <select id="sched-child-sel" style="background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:14px;outline:none" onchange="loadSchedule()"></select>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">🌙 Bedtime & Wake Up</div>
+            <div class="setting-row">
+              <div><div class="setting-label">Bedtime</div><div class="setting-desc">Device locks automatically</div></div>
+              <div class="setting-control time-picker">
+                <input type="number" id="bedtime-h" class="time-input" min="18" max="23" value="21" oninput="saveSchedule()"/>
+                <span class="time-sep">:</span>
+                <input type="number" id="bedtime-m" class="time-input" min="0" max="59" value="0" oninput="saveSchedule()"/>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-label">Wake Up</div><div class="setting-desc">Device unlocks automatically</div></div>
+              <div class="setting-control time-picker">
+                <input type="number" id="wake-h" class="time-input" min="5" max="12" value="6" oninput="saveSchedule()"/>
+                <span class="time-sep">:</span>
+                <input type="number" id="wake-m" class="time-input" min="0" max="59" value="30" oninput="saveSchedule()"/>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-label">Smart Bedtime Warning</div><div class="setting-desc">Warn child 15 min before lock</div></div>
+              <div class="setting-control"><label class="toggle"><input type="checkbox" id="smart-bedtime" checked/><span class="toggle-slider"></span></label></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">⏱️ Daily Screen Time</div>
+            <div class="setting-row">
+              <div><div class="setting-label">Weekday Limit</div><div class="setting-desc">Monday – Friday</div></div>
+              <div class="setting-control range-wrap" style="gap:8px">
+                <input type="range" id="weekday-limit" min="30" max="480" step="15" value="120" oninput="document.getElementById('weekday-val').textContent=Math.floor(this.value/60)+'h '+(this.value%60)+'m';saveSchedule()" style="width:120px"/>
+                <span class="range-val" id="weekday-val">2h 0m</span>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-label">Weekend Limit</div><div class="setting-desc">Saturday & Sunday</div></div>
+              <div class="setting-control range-wrap" style="gap:8px">
+                <input type="range" id="weekend-limit" min="30" max="480" step="15" value="180" oninput="document.getElementById('weekend-val').textContent=Math.floor(this.value/60)+'h '+(this.value%60)+'m';saveSchedule()" style="width:120px"/>
+                <span class="range-val" id="weekend-val">3h 0m</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📚 Auto Study Mode</div>
+            <p style="font-size:13px;color:var(--t2);margin-bottom:16px">Study mode activates automatically — only educational apps allowed</p>
+            <div class="setting-row">
+              <div><div class="setting-label">Enable Auto Study</div></div>
+              <div class="setting-control"><label class="toggle"><input type="checkbox" id="auto-study" checked/><span class="toggle-slider"></span></label></div>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-label">Study Start</div></div>
+              <div class="setting-control time-picker">
+                <input type="number" id="study-start-h" class="time-input" value="15" min="8" max="22"/>
+                <span class="time-sep">:</span>
+                <input type="number" id="study-start-m" class="time-input" value="0" min="0" max="59"/>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-label">Study End</div></div>
+              <div class="setting-control time-picker">
+                <input type="number" id="study-end-h" class="time-input" value="17" min="8" max="22"/>
+                <span class="time-sep">:</span>
+                <input type="number" id="study-end-m" class="time-input" value="0" min="0" max="59"/>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;width:100%" onclick="saveSchedule()">Save Schedule</button>
+          </div>
+          <div class="card">
+            <div class="card-title">📅 Weekly Schedule</div>
+            <p style="font-size:13px;color:var(--t2);margin-bottom:16px">Different limits per day</p>
+            <div id="weekly-schedule">
+              <div class="schedule-day"><span class="schedule-day-name">Monday</span><div class="schedule-times"><span class="schedule-chip">2h screen</span><span class="schedule-chip">3pm–5pm study</span><span class="schedule-chip">9pm bed</span></div></div>
+              <div class="schedule-day"><span class="schedule-day-name">Tuesday</span><div class="schedule-times"><span class="schedule-chip">2h screen</span><span class="schedule-chip">3pm–5pm study</span><span class="schedule-chip">9pm bed</span></div></div>
+              <div class="schedule-day"><span class="schedule-day-name">Wednesday</span><div class="schedule-times"><span class="schedule-chip">2h screen</span><span class="schedule-chip">3pm–5pm study</span><span class="schedule-chip">9pm bed</span></div></div>
+              <div class="schedule-day"><span class="schedule-day-name">Thursday</span><div class="schedule-times"><span class="schedule-chip">2h screen</span><span class="schedule-chip">3pm–5pm study</span><span class="schedule-chip">9pm bed</span></div></div>
+              <div class="schedule-day"><span class="schedule-day-name">Friday</span><div class="schedule-times"><span class="schedule-chip">3h screen</span><span class="schedule-chip">No study</span><span class="schedule-chip">10pm bed</span></div></div>
+              <div class="schedule-day"><span class="schedule-day-name">Saturday</span><div class="schedule-times"><span class="schedule-chip">4h screen</span><span class="schedule-chip">Free day</span><span class="schedule-chip">10pm bed</span></div></div>
+              <div class="schedule-day"><span class="schedule-day-name">Sunday</span><div class="schedule-times"><span class="schedule-chip">3h screen</span><span class="schedule-chip">No study</span><span class="schedule-chip">9pm bed</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REWARDS -->
+      <div class="page" id="page-rewards">
+        <div class="section-header"><h2>Rewards System</h2><p>Reward good behavior with extra screen time — unique to Guardian</p></div>
+        <div class="grid-2">
+          <div>
+            <div id="reward-child-cards"></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">🎁 Give Reward</div>
+              <div class="field"><label>Child</label><select id="reward-child-sel" style="width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:14px;outline:none"></select></div>
+              <div class="field"><label>Extra Screen Time</label>
+                <div class="range-wrap"><input type="range" id="reward-mins" min="5" max="120" step="5" value="30" oninput="document.getElementById('reward-mins-val').textContent=this.value+' min'"/><span class="range-val" id="reward-mins-val">30 min</span></div>
+              </div>
+              <div class="field"><label>Reason (shown to child)</label><input id="reward-reason" type="text" placeholder="Great homework today! 🌟"/></div>
+              <button class="btn btn-primary" style="width:100%" onclick="giveReward()">🎁 Send Reward</button>
+            </div>
+            <div class="card">
+              <div class="card-title">📜 Reward History</div>
+              <div id="reward-history">
+                <div class="empty-state" style="padding:20px"><div class="es-icon" style="font-size:32px">🏅</div><div class="es-desc">No rewards given yet. Reward your children for good behavior!</div></div>
               </div>
             </div>
           </div>
         </div>
-        <div>
+      </div>
+
+      <!-- MOOD TRACKER -->
+      <div class="page" id="page-mood">
+        <div class="section-header"><h2>Mood Tracker</h2><p>See how your children feel — a Guardian exclusive feature</p></div>
+        <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(0,232,176,.08),rgba(124,111,255,.08));border-color:rgba(0,232,176,.2)">
+          <p style="font-size:14px;line-height:1.7;color:var(--t2)">🧠 <strong style="color:var(--text)">How it works:</strong> When a child unlocks their tablet, Guardian shows them a quick emoji check-in. Their mood is logged privately and shown only to you. This helps you spot stress, anxiety, or happiness trends over time — no other parental control app in the world does this.</p>
+        </div>
+        <div class="grid-2">
           <div class="card">
-            <div class="card-title">Step 3 — Scan QR Code on Tablet</div>
-            <div class="qr-panel">
-              <div style="font-size:13px;color:var(--t2);margin-bottom:8px">Point the child's tablet camera at this code</div>
-              <div id="qrcode"></div>
-              <div style="font-size:11px;color:var(--t3);margin-top:8px" id="pair-code-str">Select a child above to generate QR code</div>
-              <button class="btn bp btn-wide" style="margin-top:16px" onclick="refreshQR()">🔄 Refresh QR Code</button>
+            <div class="card-title">😊 This Week's Moods — Michele</div>
+            <div id="mood-chart-1">
+              <div class="mood-row"><span class="mood-emoji">😄</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:70%;background:var(--a3)"></div></div><span class="mood-count">7×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😊</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:40%;background:var(--blue)"></div></div><span class="mood-count">4×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😐</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:20%;background:var(--amber)"></div></div><span class="mood-count">2×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😔</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:10%;background:var(--a2)"></div></div><span class="mood-count">1×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😢</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:5%;background:var(--red)"></div></div><span class="mood-count">0×</span></div>
             </div>
-            <div style="margin-top:16px;background:var(--s2);border-radius:10px;padding:14px">
-              <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--t2)">WHAT HAPPENS NEXT</div>
-              <div style="font-size:12px;color:var(--t3);line-height:1.8">✅ Tablet scans QR code<br/>✅ Device appears in your dashboard<br/>✅ Guardian app requests required permissions<br/>✅ Rules sync automatically<br/>✅ Live monitoring begins immediately</div>
+            <p style="font-size:12px;color:var(--a3);margin-top:12px">✨ Michele is mostly happy this week!</p>
+          </div>
+          <div class="card">
+            <div class="card-title">😊 This Week's Moods — Nana Yhaa</div>
+            <div id="mood-chart-2">
+              <div class="mood-row"><span class="mood-emoji">😄</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:50%;background:var(--a3)"></div></div><span class="mood-count">5×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😊</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:60%;background:var(--blue)"></div></div><span class="mood-count">6×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😐</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:30%;background:var(--amber)"></div></div><span class="mood-count">3×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😔</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:20%;background:var(--a2)"></div></div><span class="mood-count">2×</span></div>
+              <div class="mood-row"><span class="mood-emoji">😢</span><div class="mood-bar-wrap"><div class="mood-bar-fill" style="width:5%;background:var(--red)"></div></div><span class="mood-count">0×</span></div>
+            </div>
+            <p style="font-size:12px;color:var(--a3);margin-top:12px">✨ Nana Yhaa is happy and cheerful!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOCUS SCORE -->
+      <div class="page" id="page-focus">
+        <div class="section-header"><h2>Focus Score</h2><p>AI-generated weekly focus rating — unique to Guardian</p></div>
+        <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(124,111,255,.1),rgba(79,179,255,.08));border-color:rgba(124,111,255,.2)">
+          <p style="font-size:14px;line-height:1.7;color:var(--t2)">🎯 <strong style="color:var(--text)">Focus Score</strong> is calculated from: study mode usage vs total screen time, blocked app attempts, and bedtime compliance. A score of 80+ means your child had an excellent focused week.</p>
+        </div>
+        <div class="grid-2">
+          <div class="card" style="text-align:center">
+            <div class="card-title" style="justify-content:center">Michele's Focus</div>
+            <div class="focus-score-ring">
+              <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--s3)" stroke-width="8"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="8" stroke-dasharray="251" stroke-dashoffset="50" stroke-linecap="round"/>
+              </svg>
+              <div class="focus-score-text"><div class="focus-score-num" style="color:var(--accent)">80</div><div class="focus-score-lbl">/ 100</div></div>
+            </div>
+            <div style="font-size:14px;font-weight:600;color:var(--a3);margin-bottom:4px">Great Focus 🌟</div>
+            <div style="font-size:12px;color:var(--t2)">Completed 4 of 5 study sessions this week</div>
+            <div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap">
+              <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--t2)">Study time</div><div style="font-weight:700;color:var(--blue)">3h 20m</div></div>
+              <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--t2)">Bedtime hits</div><div style="font-weight:700;color:var(--a3)">6/7</div></div>
+              <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--t2)">App attempts</div><div style="font-weight:700;color:var(--amber)">3</div></div>
+            </div>
+          </div>
+          <div class="card" style="text-align:center">
+            <div class="card-title" style="justify-content:center">Nana Yhaa's Focus</div>
+            <div class="focus-score-ring">
+              <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--s3)" stroke-width="8"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--a2)" stroke-width="8" stroke-dasharray="251" stroke-dashoffset="75" stroke-linecap="round"/>
+              </svg>
+              <div class="focus-score-text"><div class="focus-score-num" style="color:var(--a2)">70</div><div class="focus-score-lbl">/ 100</div></div>
+            </div>
+            <div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:4px">Good Focus ⭐</div>
+            <div style="font-size:12px;color:var(--t2)">Missed 2 study sessions this week</div>
+            <div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap">
+              <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--t2)">Study time</div><div style="font-weight:700;color:var(--blue)">2h 10m</div></div>
+              <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--t2)">Bedtime hits</div><div style="font-weight:700;color:var(--a3)">5/7</div></div>
+              <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--t2)">App attempts</div><div style="font-weight:700;color:var(--amber)">7</div></div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ═══ SETTINGS ═══ -->
-    <div class="page" id="page-settings">
-      <div class="g2">
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">👨‍👩‍👧 Child Profiles</div>
-            <div id="profile-list" style="display:flex;flex-direction:column;gap:11px">
-              <div class="skeleton" style="height:70px;border-radius:12px"></div>
-            </div>
-            <button class="btn bp btn-wide" style="margin-top:14px" onclick="addChildModal()">+ Add Child Profile</button>
+      <!-- REPORTS -->
+      <div class="page" id="page-reports">
+        <div class="section-header"><h2>Reports</h2><p>Weekly usage summary for your family</p></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">📊 Screen Time — Last 7 Days</div>
+            <div class="chart-wrap" id="report-chart"></div>
           </div>
           <div class="card">
-            <div class="card-title">🔔 Notifications</div>
-            <div style="display:flex;flex-direction:column;gap:13px">
-              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Blocked site alerts</div><div style="font-size:11px;color:var(--t2)">Real-time push notification</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
-              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Screen time warnings</div><div style="font-size:11px;color:var(--t2)">When 80% of limit reached</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
-              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Study session completed</div><div style="font-size:11px;color:var(--t2)">Notify when kids finish studying</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
-              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Device offline alerts</div><div style="font-size:11px;color:var(--t2)">When a tablet disconnects</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="card-title">🚫 Top Blocked Apps</div>
+            <div id="top-blocked-list">
+              <div class="app-rule-item"><div class="app-rule-icon">🎮</div><div><div class="app-rule-name">Free Fire</div><div class="app-rule-sub">Blocked 14× this week</div></div><span class="nav-badge">14</span></div>
+              <div class="app-rule-item"><div class="app-rule-icon">📺</div><div><div class="app-rule-name">YouTube</div><div class="app-rule-sub">Time limit reached 8×</div></div><span class="nav-badge" style="background:var(--amber)">8</span></div>
+              <div class="app-rule-item"><div class="app-rule-icon">💬</div><div><div class="app-rule-name">WhatsApp</div><div class="app-rule-sub">Blocked during study 6×</div></div><span class="nav-badge" style="background:var(--blue)">6</span></div>
             </div>
           </div>
-        </div>
-        <div>
-          <div class="card" style="margin-bottom:14px">
-            <div class="card-title">🔐 Security</div>
-            <div style="display:flex;flex-direction:column;gap:13px">
-              <div style="background:var(--s2);border-radius:10px;padding:13px">
-                <div style="font-size:13px;font-weight:600;margin-bottom:5px">Parent PIN</div>
-                <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Kids need this to uninstall Guardian</div>
-                <button class="btn bg_ btn-wide" style="font-size:12px;padding:8px">Change PIN</button>
+          <div class="card">
+            <div class="card-title">📅 Sunday Family Digest</div>
+            <div style="background:linear-gradient(135deg,rgba(124,111,255,.1),rgba(255,110,180,.08));border-radius:12px;padding:16px;border:1px solid rgba(124,111,255,.2)">
+              <div style="font-family:'Clash Display',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px">Week of March 3 – 9, 2026</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+                <div><span style="color:var(--t2)">Total screen time</span><div style="font-weight:700;font-size:16px">18h 40m</div></div>
+                <div><span style="color:var(--t2)">Apps blocked</span><div style="font-weight:700;font-size:16px;color:var(--red)">28×</div></div>
+                <div><span style="color:var(--t2)">Study sessions</span><div style="font-weight:700;font-size:16px;color:var(--a3)">9/10</div></div>
+                <div><span style="color:var(--t2)">Bedtime compliance</span><div style="font-weight:700;font-size:16px;color:var(--blue)">11/14</div></div>
               </div>
-              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Require PIN for settings</div><div style="font-size:11px;color:var(--t2)">Prevent kids from changing rules</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
-              <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Tamper detection</div><div style="font-size:11px;color:var(--t2)">Alert if Guardian is bypassed</div></div><div class="toggle on-g" onclick="this.classList.toggle('on-g')"></div></div>
+              <div style="margin-top:12px;font-size:12px;color:var(--a3)">✨ Great week! Michele earned 3 focus stars.</div>
             </div>
           </div>
           <div class="card">
-            <div class="card-title">🖥️ Server Connection</div>
-            <div style="background:var(--s2);border-radius:10px;padding:13px;margin-bottom:12px">
-              <div style="font-size:11px;color:var(--t3);margin-bottom:4px">CONNECTED TO</div>
-              <div style="font-size:14px;font-weight:500;font-family:monospace" id="server-display">–</div>
-              <div style="font-size:11px;color:var(--t3);margin-top:4px" id="server-status-text">Checking…</div>
+            <div class="card-title">🛰️ Location Status</div>
+            <p style="font-size:13px;color:var(--t2);margin-bottom:14px">Geofence alert — notified if tablets leave home WiFi</p>
+            <div class="geo-status"><div class="geo-dot geo-home"></div><div><div style="font-size:13px;font-weight:600">Michele's Tablet</div><div style="font-size:11px;color:var(--t2)">🏠 At home · Last seen 2 min ago</div></div></div>
+            <div class="geo-status"><div class="geo-dot geo-home"></div><div><div style="font-size:13px;font-weight:600">Nana Yhaa's Tablet</div><div style="font-size:11px;color:var(--t2)">🏠 At home · Last seen 5 min ago</div></div></div>
+            <div style="margin-top:12px">
+              <div class="setting-row">
+                <div><div class="setting-label">Geofence Alerts</div><div class="setting-desc">Notify when device leaves home</div></div>
+                <div class="setting-control"><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+              </div>
             </div>
-            <button class="btn bg_ btn-wide" style="font-size:12px;padding:9px" onclick="pingServer()">🔄 Test Connection</button>
           </div>
         </div>
       </div>
-    </div>
 
-  </main>
-</div>
-
-<!-- NOTIFICATION POPUP -->
-<div id="notif-popup">
-  <div style="font-size:22px" id="np-icon">⚠️</div>
-  <div class="np-body">
-    <div class="np-title" id="np-title">Alert</div>
-    <div class="np-text" id="np-text"></div>
-    <div class="np-acts">
-      <button class="np-allow" onclick="dismissNotif()">Dismiss</button>
-      <button class="np-block" id="np-action-btn">Lock Device</button>
-    </div>
-  </div>
-  <div class="np-close" onclick="dismissNotif()">×</div>
-</div>
-
-<!-- LOCK MODAL -->
-<div class="modal-bg" id="lock-modal">
-  <div class="modal">
-    <div style="font-size:48px;text-align:center;margin-bottom:12px">🔒</div>
-    <div class="modal-title" style="text-align:center" id="lock-modal-title">Lock Device</div>
-    <div class="modal-sub" style="text-align:center">Choose lock duration. Device will auto-unlock after time expires.</div>
-    <div class="dur-grid">
-      <button class="btn bg_" style="padding:13px" onclick="doLock(10)">⏱ 10 Minutes</button>
-      <button class="btn bg_" style="padding:13px" onclick="doLock(30)">⏱ 30 Minutes</button>
-      <button class="btn bg_" style="padding:13px" onclick="doLock(60)">⏱ 1 Hour</button>
-      <button class="btn bd" style="padding:13px" onclick="doLock(0)">🔒 Until I Unlock</button>
-    </div>
-    <button class="btn bg_ btn-wide" style="margin-top:9px" onclick="closeModal('lock-modal')">Cancel</button>
-  </div>
-</div>
-
-<!-- MESSAGE MODAL -->
-<div class="modal-bg" id="msg-modal">
-  <div class="modal">
-    <div class="modal-title">💬 Send Message to <span id="msg-target-name">Child</span></div>
-    <div class="modal-sub">Message will appear as a notification on their tablet.</div>
-    <div class="field" style="margin-bottom:16px">
-      <label>Your message</label>
-      <input class="inp" id="msg-text" placeholder="e.g. Dinner is ready! Come down 😊" style="width:100%" onkeydown="if(event.key==='Enter')doSendMsg()"/>
-    </div>
-    <div style="display:flex;gap:9px">
-      <button class="btn bp" style="flex:2;padding:12px" onclick="doSendMsg()">📤 Send Message</button>
-      <button class="btn bg_" style="flex:1;padding:12px" onclick="closeModal('msg-modal')">Cancel</button>
-    </div>
-    <div style="margin-top:12px">
-      <div style="font-size:11px;color:var(--t3);margin-bottom:6px">QUICK MESSAGES</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
-        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('Dinner time! 🍽️')">Dinner time!</button>
-        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('Time to study 📚')">Time to study</button>
-        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('5 more minutes then put it down 🙏')">5 more minutes</button>
-        <button class="chip cp" style="cursor:pointer" onclick="quickMsg('Bedtime soon! 🌙')">Bedtime soon</button>
+      <!-- PAIR -->
+      <div class="page" id="page-pair">
+        <div class="section-header"><h2>Add Device</h2><p>Pair a child's tablet to Guardian in 30 seconds</p></div>
+        <div class="grid-2">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">Step 1 — Choose Child</div>
+              <div id="pair-child-list"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Step 2 — Install Guardian</div>
+              <div style="background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.2);border-radius:10px;padding:14px;margin-bottom:10px">
+                <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px">🤖 Android Tablet</div>
+                <div style="font-size:12px;color:var(--t2);line-height:1.7">1. Download Guardian APK from your server<br>2. Enable "Install unknown apps" in Settings<br>3. Install and open Guardian<br>4. Scan the QR code →</div>
+              </div>
+            </div>
+          </div>
+          <div class="qr-wrap">
+            <div style="font-size:13px;color:var(--t2);margin-bottom:4px">Step 3 — Scan QR Code on Tablet</div>
+            <div style="font-size:12px;color:var(--t3);margin-bottom:12px">Point the tablet camera at this code</div>
+            <div id="qrcode"></div>
+            <div class="pair-code-str" id="pair-code-str">Select a child to generate QR code</div>
+            <button class="btn btn-ghost" style="width:100%;margin-top:12px;justify-content:center" onclick="refreshQR()">🔄 Refresh QR Code</button>
+            <div style="margin-top:20px;font-size:12px;color:var(--t2)">
+              <div style="margin-bottom:6px;font-weight:600;color:var(--text)">What happens next:</div>
+              <div>✅ Tablet scans QR code</div>
+              <div>✅ Device appears in your dashboard</div>
+              <div>✅ Guardian app requests permissions</div>
+              <div>✅ Rules sync automatically</div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="section-header"><h2>Settings</h2><p>Manage your account and children's profiles</p></div>
+        <div class="grid-2">
+          <div>
+            <div class="card settings-section">
+              <div class="settings-section-title">👨‍👩‍👧 Children Profiles</div>
+              <div id="children-profiles"></div>
+              <button class="btn btn-primary" style="margin-top:16px" onclick="showAddChild()">+ Add Child</button>
+            </div>
+            <div class="card settings-section" id="add-child-form" style="display:none">
+              <div class="settings-section-title">➕ Add New Child</div>
+              <div class="field"><label>Name</label><input id="new-child-name" placeholder="e.g. Kofi"/></div>
+              <div class="field"><label>Age</label><input id="new-child-age" type="number" placeholder="9"/></div>
+              <div class="field"><label>Grade</label><input id="new-child-grade" placeholder="Grade 4"/></div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" onclick="addChild()">Save Child</button>
+                <button class="btn btn-ghost" onclick="document.getElementById('add-child-form').style.display='none'">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card settings-section">
+              <div class="settings-section-title">🔔 Notifications</div>
+              <div class="setting-row"><div><div class="setting-label">App Blocked Alerts</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">Device Offline Alert</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">Screen Time Warning</div><div class="setting-desc">Alert at 80% of daily limit</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">Sunday Family Digest</div><div class="setting-desc">Weekly summary every Sunday</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div></div>
+              <div class="setting-row"><div><div class="setting-label">Mood Alerts</div><div class="setting-desc">Alert if child reports sadness 2+ days</div></div><div class="setting-control"><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div></div>
+            </div>
+            <div class="card settings-section">
+              <div class="settings-section-title">🔐 Account</div>
+              <div class="setting-row"><div><div class="setting-label">Account Email</div><div class="setting-desc" id="account-email">—</div></div></div>
+              <div class="setting-row"><div><div class="setting-label">Server</div><div class="setting-desc" id="account-server">—</div></div></div>
+              <button class="btn btn-ghost" style="margin-top:12px;width:100%" onclick="logout()">🚪 Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /shell -->
+</div><!-- /app -->
+
+<div id="toast-container"></div>
+<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ Menu</button>
 
 <script>
-// ═══ GUARDIAN API CLIENT (inline) ════════════════════════════════════════════
-class GuardianAPI {
-  constructor(){
-    this.baseUrl = localStorage.getItem('g_server')||'https://guardian-server-production.up.railway.app';
-    this.wsUrl   = this.baseUrl.replace(/^http/,'ws');
-    this.token   = localStorage.getItem('g_token');
-    this.ws=null; this.wsReady=false; this.queue=[];
-    this.handlers={}; this.reconnectDelay=2000;
-    if(this.token) this._initWS();
-  }
-  async register(email,password,name){
-    const d=await this._post('/api/auth/register',{email,password,name});
-    this._save(d); return d;
-  }
-  async login(email,password){
-    const d=await this._post('/api/auth/login',{email,password}); this._save(d); return d;
-  }
-  logout(){localStorage.removeItem('g_token');localStorage.removeItem('g_server');this.token=null;this.ws?.close();location.reload()}
-  get isLoggedIn(){return!!this.token}
+const SERVER = 'https://guardian-server-production.up.railway.app';
+let G = { token: null, familyId: null, children: [], ws: null, activityLog: [], demo: false };
 
-  async getChildren(){return this._get('/api/children')}
-  async addChild(name,age,grade){return this._post('/api/children',{name,age,grade})}
-  async getActivity(opts={}){const q=new URLSearchParams(opts).toString();return this._get('/api/activity?'+q)}
-  async getReport(){return this._get('/api/reports/weekly')}
-  async getApps(id){return this._get('/api/children/'+id+'/apps')}
-  async setAppRule(id,r){return this._post('/api/children/'+id+'/apps',r)}
-  async getWebRules(){return this._get('/api/website-rules')}
-  async addWebRule(domain,type){return this._post('/api/website-rules',{domain,ruleType:type})}
-  async delWebRule(id){return this._del('/api/website-rules/'+id)}
-
-  lockDevice(childId,mins){this._ws({type:'LOCK_DEVICE',childId,durationMinutes:mins||undefined})}
-  unlockDevice(childId){this._ws({type:'UNLOCK_DEVICE',childId})}
-  studyMode(childId,on){this._ws({type:'SET_STUDY_MODE',childId,active:on})}
-  screenshot(childId){this._ws({type:'REQUEST_SCREENSHOT',childId})}
-  message(childId,msg){this._ws({type:'SEND_MESSAGE',childId,message:msg})}
-  lockAll(){this._ws({type:'LOCK_ALL'})}
-
-  on(t,cb){(this.handlers[t]=this.handlers[t]||[]).push(cb);return()=>{this.handlers[t]=this.handlers[t].filter(x=>x!==cb)}}
-  _emit(t,d){(this.handlers[t]||[]).forEach(f=>f(d));(this.handlers['*']||[]).forEach(f=>f({type:t,...d}))}
-
-  _initWS(){
-    if(!this.token)return;
-    this.ws=new WebSocket(this.wsUrl.replace('http','ws'));
-    this.ws.onopen=()=>{
-      this.wsReady=true; this.reconnectDelay=2000;
-      this._ws({type:'AUTH',token:this.token});
-      this.queue.forEach(m=>this.ws.send(m)); this.queue=[];
-      this._emit('WS_STATUS',{connected:true});
-    };
-    this.ws.onmessage=e=>{try{this._handle(JSON.parse(e.data))}catch(x){}};
-    this.ws.onclose=()=>{
-      this.wsReady=false;
-      this._emit('WS_STATUS',{connected:false});
-      setTimeout(()=>this._initWS(),this.reconnectDelay);
-      this.reconnectDelay=Math.min(this.reconnectDelay*1.5,30000);
-    };
-    this.ws.onerror=e=>console.error('WS err',e);
-  }
-  _handle(m){
-    if(m.type==='STATE_SNAPSHOT') this._emit('SNAPSHOT',m);
-    else if(m.type==='DEVICE_HEARTBEAT') this._emit('HEARTBEAT',m);
-    else if(m.type==='ACTIVITY_EVENT'){this._emit('ACTIVITY',m);if(m.wasBlocked)this._emit('ALERT',m)}
-    else if(m.type==='SCREENSHOT') this._emit('SCREENSHOT',m);
-    else if(m.type==='DEVICE_ONLINE'||m.type==='DEVICE_OFFLINE') this._emit('DEVICE_STATUS',m);
-    else if(m.type==='AUTH_FAILED'){this.logout()}
-  }
-  _ws(o){const s=JSON.stringify(o);this.wsReady?this.ws.send(s):this.queue.push(s)}
-  async _get(p){const r=await fetch(this.baseUrl+p,{headers:this._h()});if(!r.ok)throw await r.json();return r.json()}
-  async _post(p,b){const r=await fetch(this.baseUrl+p,{method:'POST',headers:this._h(),body:JSON.stringify(b)});if(!r.ok)throw await r.json();return r.json()}
-  async _del(p){const r=await fetch(this.baseUrl+p,{method:'DELETE',headers:this._h()});if(!r.ok)throw await r.json();return r.json()}
-  _h(){const h={'Content-Type':'application/json'};if(this.token)h['Authorization']='Bearer '+this.token;return h}
-  _save({token,familyId}){this.token=token;localStorage.setItem('g_token',token);if(familyId)localStorage.setItem('g_fid',familyId);this._initWS()}
-}
-
-// ═══ INIT ════════════════════════════════════════════════════════════════════
-const G = new GuardianAPI();
-let children = [];
-let studyAll = false;
-let lockTarget = null;
-let msgTarget = null;
-let alertCount = 0;
-let demoModeOn = false;
-
-// ── Demo seed data ────────────────────────────────────────────────────────────
-const DEMO_CHILDREN = [
-  {id:'c1',name:'Michele',age:9,platform:'Android',online_devices:1,today_minutes:130,daily_limit_minutes:180,study_mode_active:0,device_locked:0,blocks_today:3,grade:'4',avatar:'ch-av-sofia',dtag:'dt-a',dtagLabel:'Android',status:'🎮 Playing Minecraft',statusClass:'ca'},
-  {id:'c2',name:'Nana Yhaa', age:7,platform:'iOS',   online_devices:1,today_minutes:92, daily_limit_minutes:180,study_mode_active:1,device_locked:0,blocks_today:1,grade:'2',avatar:'ch-av-emma', dtag:'dt-i',dtagLabel:'iPad',   status:'📖 Reading App',   statusClass:'cb'}
-];
-const DEMO_ACTIVITY = [
-  {childName:'Michele',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'Tried to open YouTube',detail:'Blocked by web filter',wasBlocked:true,time:'2m ago'},
-  {childName:'Nana Yhaa', badge:'be',icon:'📖',bg:'rgba(0,229,160,.1)', name:'Opened Khan Academy Kids',detail:'Educational · Allowed',wasBlocked:false,time:'8m ago'},
-  {childName:'Michele',badge:'bs',icon:'🎮',bg:'rgba(255,179,71,.12)',name:'Minecraft — session started',detail:'Game · 45min today',wasBlocked:false,time:'45m ago'},
-  {childName:'Michele',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'TikTok blocked (3 attempts)',detail:'Always blocked',wasBlocked:true,time:'1h ago'},
-  {childName:'Nana Yhaa', badge:'be',icon:'🌐',bg:'rgba(77,166,255,.1)', name:'Visited pbskids.org',detail:'Educational site',wasBlocked:false,time:'2h ago'},
-];
-const DEMO_APPS_GAMES = [
-  {emoji:'🎮',bg:'rgba(255,200,0,.15)',name:'Minecraft',cat:'Games · 1h 20m today',on:true},
-  {emoji:'📺',bg:'rgba(255,100,100,.12)',name:'YouTube Kids',cat:'Video · Blocked',on:false},
-  {emoji:'🎵',bg:'rgba(200,100,255,.15)',name:'TikTok',cat:'Social · Always blocked',on:false},
-  {emoji:'🎰',bg:'rgba(255,150,0,.15)',name:'Roblox',cat:'Games · Blocked after 5PM',on:false},
-];
-const DEMO_APPS_EDU = [
-  {emoji:'📖',bg:'rgba(0,229,160,.12)',name:'Khan Academy Kids',cat:'Education · Always allowed',on:true,green:true},
-  {emoji:'🔢',bg:'rgba(77,166,255,.12)',name:'Prodigy Math',cat:'Education · 35m today',on:true,green:true},
-  {emoji:'🎨',bg:'rgba(255,179,71,.12)',name:'Drawing & Art',cat:'Creative · Allowed',on:true,green:true},
-  {emoji:'🌍',bg:'rgba(108,99,255,.15)',name:'Duolingo ABC',cat:'Language · Allowed',on:true,green:true},
-];
-
-// ═══ AUTH ════════════════════════════════════════════════════════════════════
-function switchAuthTab(mode,el){
-  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('form-login').style.display = mode==='login'?'':'none';
-  document.getElementById('form-register').style.display = mode==='register'?'':'none';
-}
-
-async function doLogin(){
-  const btn=document.getElementById('login-btn');
-  const err=document.getElementById('login-err');
-  const email=document.getElementById('l-email').value.trim();
-  const pass=document.getElementById('l-pass').value;
-  const srv=document.getElementById('l-server').value.trim();
-  err.textContent='';
-  if(!email||!pass){err.textContent='Please enter email and password.';return}
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
-  try{
-    G.baseUrl='https://guardian-server-production.up.railway.app'; G.wsUrl='wss://guardian-server-production.up.railway.app';
-    localStorage.setItem('g_server', 'https://guardian-server-production.up.railway.app');
-    await G.login(email,pass);
-    launchApp();
-  }catch(e){err.textContent=e.error||'Connection failed — check server URL.'}
-  btn.disabled=false; btn.textContent='Sign In';
-}
-
-async function doRegister(){
-  const btn=document.getElementById('register-btn');
-  const err=document.getElementById('register-err');
-  const name=document.getElementById('r-name').value.trim();
-  const email=document.getElementById('r-email').value.trim();
-  const pass=document.getElementById('r-pass').value;
-  const srv=document.getElementById('r-server').value.trim();
-  err.textContent='';
-  if(!name||!email||!pass){err.textContent='Please fill all fields.';return}
-  if(pass.length<8){err.textContent='Password must be at least 8 characters.';return}
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
-  try{
-    G.baseUrl='https://guardian-server-production.up.railway.app'; G.wsUrl='wss://guardian-server-production.up.railway.app';
-    localStorage.setItem('g_server', 'https://guardian-server-production.up.railway.app');
-    await G.register(email,pass,name);
-    launchApp();
-  }catch(e){err.textContent=e.error||'Registration failed — check server URL.'}
-  btn.disabled=false; btn.textContent='Create Account';
-}
-
-function demoMode(){
-  demoModeOn=true;
-  children=DEMO_CHILDREN;
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app-shell').style.display='flex';
-  document.getElementById('parent-name').textContent='Mom (Demo)';
-  document.getElementById('parent-av').textContent='M';
-  document.getElementById('server-display').textContent='Demo Mode';
-  setConnStatus(true);
-  loadDashboard();
-  loadActivity();
-  loadApps();
-  loadWebFilter();
-  loadReports();
-  loadPairing();
-  loadSettings();
-  // Demo live events
-  setInterval(demoLiveEvent, 9000);
-}
-
-function launchApp(){
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app-shell').style.display='flex';
-  const srv = localStorage.getItem('g_server')||'';
-  document.getElementById('server-display').textContent = srv.replace('http://','');
-  setupWSHandlers();
-  loadAll();
-}
-
-// ═══ WS HANDLERS ════════════════════════════════════════════════════════════
-function setupWSHandlers(){
-  G.on('WS_STATUS',({connected})=>setConnStatus(connected));
-  G.on('SNAPSHOT', ({children:ch})=>{ children=ch; renderDashboard(); });
-  G.on('HEARTBEAT', msg=>updateDeviceStatus(msg));
-  G.on('ACTIVITY', msg=>prependActivity(msg));
-  G.on('ALERT', msg=>showNotif(msg));
-  G.on('SCREENSHOT', ({childId,image})=>showScreenshot(childId,image));
-  G.on('DEVICE_STATUS', msg=>handleDeviceStatus(msg));
-}
-
-function setConnStatus(on){
-  const dot=document.getElementById('ws-dot');
-  const lbl=document.getElementById('ws-label');
-  const bar=document.getElementById('conn-bar');
-  if(on){dot.classList.add('live');lbl.textContent='Live';bar.classList.remove('show')}
-  else{dot.classList.remove('live');lbl.textContent='Reconnecting…';bar.classList.add('show');document.getElementById('conn-bar-text').textContent='Reconnecting to Guardian server…'}
-}
-
-// ═══ LOAD DATA ═══════════════════════════════════════════════════════════════
-async function loadAll(){
-  try{ children = await G.getChildren(); }catch(e){ children=DEMO_CHILDREN; }
-  renderDashboard(); loadActivity(); loadApps(); loadWebFilter(); loadReports(); loadPairing(); loadSettings();
-}
-
-function loadDashboard(){ renderDashboard(); }
-
-function renderDashboard(){
-  const total = children.reduce((a,c)=>a+(c.today_minutes||0),0);
-  const blocks = children.reduce((a,c)=>a+(c.blocks_today||0),0);
-  const online = children.filter(c=>c.online_devices>0).length;
-  document.getElementById('s-online').textContent = online+'/'+children.length;
-  document.getElementById('s-time').textContent = fmtTime(total);
-  document.getElementById('s-blocks').textContent = blocks;
-  document.getElementById('s-study').textContent = children.filter(c=>c.study_mode_active).length + ' active';
-
-  // Child cards
-  const area = document.getElementById('child-cards-area');
-  area.innerHTML = '';
-  children.forEach(ch=>{
-    const pct = Math.min(100,Math.round((ch.today_minutes||0)/(ch.daily_limit_minutes||180)*100));
-    const fillClass = pct>=90?'pf-r':pct>=70?'pf-a':'pf-g';
-    const timeStr = fmtTime(ch.today_minutes||0)+' / '+fmtTime(ch.daily_limit_minutes||180);
-    const isOnline = ch.online_devices>0;
-    const av = ch.name==='Michele'?'ch-av-sofia':'ch-av-emma';
-    const dtag = ch.platform==='Android'||ch.platform==='android'?'<span class="dtag dt-a">Android</span>':'<span class="dtag dt-i">iPad</span>';
-    const card = document.createElement('div');
-    card.className='child-card';
-    card.innerHTML=`
-      <div class="ch-head">
-        <div class="ch-av ${av} ${isOnline?'online':'offline'}">🧒${isOnline?'<div class="online-dot"></div>':''}</div>
-        <div style="flex:1">
-          <div class="ch-name">${ch.name}, ${ch.age||'–'}</div>
-          <div class="ch-status"><span class="chip ca">${ch.study_mode_active?'📚 Study Mode':'🎮 Playing'}</span></div>
-        </div>
-        ${dtag}
-      </div>
-      <div class="ch-body">
-        <div class="time-row"><span>Screen Time Today</span><span style="color:var(--${pct>=90?'red':pct>=70?'amber':'green'})">${timeStr}</span></div>
-        <div class="pbar"><div class="pfill ${fillClass}" style="width:${pct}%"></div></div>
-        <div class="ch-chips">
-          ${ch.study_mode_active?'<span class="chip cb">📚 Study mode</span>':'<span class="chip cg">✅ Normal mode</span>'}
-          ${pct>=80?'<span class="chip ca">⚠️ Limit soon</span>':'<span class="chip cg">✅ On track</span>'}
-        </div>
-        <div class="ch-acts">
-          <button class="btn bd" onclick="openLock('${ch.id}','${ch.name}')">🔒 Lock</button>
-          <button class="btn bgreen" onclick="toggleStudyChild('${ch.id}',${ch.study_mode_active?0:1},'${ch.name}')">📚 ${ch.study_mode_active?'End Study':'Study'}</button>
-          <button class="btn bp" onclick="nav('liveview',null)">👁️ Live</button>
-          <button class="btn bg_" onclick="openMsg('${ch.id}','${ch.name}')">💬</button>
-        </div>
-      </div>`;
-    area.appendChild(card);
-  });
-
-  // Mirror cards
-  renderMirrors();
-}
-
-function renderMirrors(){
-  const area = document.getElementById('mirror-area');
-  if(!area) return;
-  area.innerHTML='';
-  const demos = [
-    {name:'Michele',av:'ch-av-sofia',platform:'Android',dtag:'dt-a',content:`
-      <div class="app-grid-sim">
-        <div class="app-sim" style="background:rgba(255,200,0,.2)">🎮<span>Minecraft</span></div>
-        <div class="app-sim" style="background:rgba(100,200,100,.2)">📚<span>Khan</span></div>
-        <div class="app-sim blocked" style="background:rgba(255,100,100,.15)">📺<span>YouTube</span></div>
-        <div class="app-sim" style="background:rgba(100,150,255,.2)">🎨<span>Draw</span></div>
-        <div class="app-sim blocked" style="background:rgba(200,100,200,.15)">🎵<span>TikTok</span></div>
-        <div class="app-sim" style="background:rgba(255,150,50,.2)">📖<span>Read</span></div>
-        <div class="app-sim" style="background:rgba(50,200,200,.2)">🌍<span>Maps</span></div>
-        <div class="app-sim blocked" style="background:rgba(255,100,100,.15)">🎰<span>Roblox</span></div>
-      </div>`},
-    {name:'Nana Yhaa',av:'ch-av-emma',platform:'iPad',dtag:'dt-i',content:`
-      <div style="background:rgba(255,255,255,.08);border-radius:14px;padding:16px;width:85%;text-align:center;backdrop-filter:blur(10px)">
-        <div style="font-size:30px;margin-bottom:8px">📖</div>
-        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:white">Khan Academy Kids</div>
-        <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">Math · Level 3</div>
-        <div style="margin-top:10px;height:5px;background:rgba(255,255,255,.15);border-radius:10px">
-          <div style="width:65%;height:100%;background:var(--green);border-radius:10px"></div>
-        </div>
-        <div style="font-size:8px;color:rgba(255,255,255,.4);margin-top:4px">65% complete</div>
-      </div>`}
-  ];
-
-  (children.length>0?children.map((ch,i)=>({...ch,...demos[i%2]})):demos).forEach((ch,i)=>{
-    const d=demos[i%2];
-    const el=document.createElement('div');
-    el.className='mirror-card';
-    el.id='mirror-'+( children[i]?.id || ('demo-'+i) );
-    el.innerHTML=`
-      <div class="mirror-head">
-        <div class="mirror-title"><span style="font-size:18px">🧒</span>${ch.name||d.name}'s Tablet<span class="dtag ${d.dtag}" style="margin-left:6px">${d.platform}</span></div>
-        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-      </div>
-      <div class="mirror-screen">
-        <div class="tab-sim" style="background:linear-gradient(180deg,#1a1a2e,#16213e,#0f3460)">
-          <div class="tab-bar"><span>${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><span>📶 🔋 ${80+i*10}%</span></div>
-          <div class="tab-content">${d.content}</div>
-          <div class="screen-lock-overlay" id="slo-${i}">
-            <div style="font-size:44px">🔒</div>
-            <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:white">Device Locked</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.5);text-align:center">Locked by Mom</div>
-          </div>
-        </div>
-      </div>
-      <div class="mirror-ctrls">
-        <button class="mcbtn mc-r" onclick="openLock('${children[i]?.id||'c'+(i+1)}','${ch.name||d.name}')">🔒 Lock</button>
-        <button class="mcbtn mc-a" onclick="toggleStudyChild('${children[i]?.id||'c'+(i+1)}',1,'${ch.name||d.name}')">📚 Study</button>
-        <button class="mcbtn mc-b" onclick="openMsg('${children[i]?.id||'c'+(i+1)}','${ch.name||d.name}')">💬 Msg</button>
-        <button class="mcbtn mc-g" onclick="doScreenshot('${children[i]?.id||'c'+(i+1)}')">📸</button>
-      </div>`;
-    area.appendChild(el);
-  });
-}
-
-// ═══ ACTIVITY ════════════════════════════════════════════════════════════════
-async function loadActivity(){
-  let acts;
-  try{ acts = await G.getActivity({limit:40}); }catch(e){ acts=DEMO_ACTIVITY; }
-  renderActivityFeed(acts, 'activity-feed');
-  renderActivityFeed(acts, 'full-activity-list');
-  renderAlertList(acts.filter(a=>a.wasBlocked||a.was_blocked));
-  renderDailySummary();
-}
-
-function renderActivityFeed(acts, targetId){
-  const el=document.getElementById(targetId);
-  if(!el) return;
-  if(!acts||!acts.length){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No activity yet</div></div>';return}
-  el.innerHTML = acts.slice(0,demoModeOn?acts.length:20).map(a=>{
-    const blocked=a.wasBlocked||a.was_blocked;
-    const badge=a.childName==='Michele'||a.child_name==='Michele'?'bs':'be';
-    const cname=a.childName||a.child_name||'Child';
-    const icon=blocked?'🚫':a.icon||(a.eventType==='APP_OPENED'?'📱':'🌐');
-    const bg=blocked?'rgba(255,77,109,.12)':'rgba(0,229,160,.1)';
-    const detail=a.detail||(a.blockReason||a.block_reason||a.appName||a.app_name||a.domain||'Activity');
-    const time=a.time||fmtAgo(a.timestamp);
-    return`<div class="ai${blocked?' alert':''}">
-      <div class="ai-icon" style="background:${bg}">${icon}</div>
-      <div class="ai-info">
-        <div class="ai-name"><span class="badge ${badge}">${cname}</span> ${a.name||a.appName||a.app_name||a.eventType||'Activity'}</div>
-        <div class="ai-det">${detail}</div>
-      </div>
-      <div class="ai-time">${time}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderAlertList(alerts){
-  const el=document.getElementById('alert-list');
-  if(!el) return;
-  if(!alerts||!alerts.length){el.innerHTML='<div class="empty"><div class="empty-text" style="font-size:13px;padding:12px 0">No alerts today 🎉</div></div>';return}
-  el.innerHTML=alerts.slice(0,5).map(a=>{
-    const badge=a.childName==='Michele'||a.child_name==='Michele'?'bs':'be';
-    return`<div class="ai alert">
-      <div class="ai-icon" style="background:rgba(255,77,109,.12)">⚠️</div>
-      <div class="ai-info"><div class="ai-name"><span class="badge ${badge}">${a.childName||a.child_name||'Child'}</span> ${a.name||a.appName||a.domain||'Blocked'}</div>
-      <div class="ai-det">${a.time||fmtAgo(a.timestamp)}</div></div>
-    </div>`;
-  }).join('');
-}
-
-function renderDailySummary(){
-  const el=document.getElementById('daily-summary');
-  if(!el) return;
-  el.innerHTML=children.map(ch=>{
-    const pct=Math.min(100,Math.round((ch.today_minutes||0)/(ch.daily_limit_minutes||180)*100));
-    const col=pct>=90?'red':pct>=70?'amber':'green';
-    return`<div style="margin-bottom:12px">
-      <div class="time-row"><span style="font-size:13px">${ch.name}</span><span style="color:var(--${col})">${fmtTime(ch.today_minutes||0)}</span></div>
-      <div class="pbar"><div class="pfill pf-${col[0]}" style="width:${pct}%"></div></div>
-    </div>`;
-  }).join('')||'<div class="skeleton" style="height:80px"></div>';
-  const b=document.getElementById('s-blocks');
-  const totalB=children.reduce((a,c)=>a+(c.blocks_today||0),0);
-  if(b) b.textContent=totalB;
-}
-
-function prependActivity(msg){
-  const blocked=msg.wasBlocked||msg.was_blocked;
-  const cname=msg.childName||'Child';
-  const badge=cname==='Michele'?'bs':'be';
-  const icon=blocked?'🚫':'📱';
-  const bg=blocked?'rgba(255,77,109,.12)':'rgba(0,229,160,.1)';
-  const html=`<div class="ai${blocked?' alert':''}">
-    <div class="ai-icon" style="background:${bg}">${icon}</div>
-    <div class="ai-info">
-      <div class="ai-name"><span class="badge ${badge}">${cname}</span> ${msg.appName||msg.domain||msg.eventType||'Activity'}</div>
-      <div class="ai-det">${msg.blockReason||msg.detail||''}</div>
-    </div>
-    <div class="ai-time">just now</div>
-  </div>`;
-  ['activity-feed','full-activity-list'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){
-      const empty=el.querySelector('.empty');
-      if(empty) el.innerHTML='';
-      el.insertAdjacentHTML('afterbegin',html);
-      while(el.children.length>20) el.removeChild(el.lastChild);
-    }
-  });
-  if(blocked){
-    alertCount++;
-    const badge=document.getElementById('alert-badge');
-    if(badge){badge.style.display='';badge.textContent=alertCount}
-    document.getElementById('notif-dot').classList.add('show');
-  }
-}
-
-// ═══ APPS ════════════════════════════════════════════════════════════════════
-async function loadApps(){
-  renderAppList(DEMO_APPS_GAMES,'app-list-games');
-  renderAppList(DEMO_APPS_EDU,'app-list-edu');
-  if(children.length>0&&!demoModeOn){
-    try{
-      const apps=await G.getApps(children[0].id);
-      if(apps.length) renderAppListFromAPI(apps);
-    }catch(e){}
-  }
-}
-
-function renderAppList(apps,targetId){
-  const el=document.getElementById(targetId);
-  if(!el) return;
-  el.innerHTML=apps.map(a=>`
-    <div class="app-li">
-      <div class="app-em" style="background:${a.bg}">${a.emoji}</div>
-      <div class="app-inf"><div class="app-nm">${a.name}</div><div class="app-cat">${a.cat}</div></div>
-      <div class="toggle ${a.on?(a.green?'on-g':'on'):''}" onclick="this.classList.toggle('on');this.classList.toggle('on-g')"></div>
-    </div>`).join('');
-}
-
-function showChildApps(idx,el){
-  document.querySelectorAll('#page-apps .tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  // In real app: reload for children[idx]
-}
-function addStudyApp(){showToast('App management coming soon — connect to server to manage apps','amber')}
-
-// ═══ WEB FILTER ══════════════════════════════════════════════════════════════
-const BLOCKED_DEFAULTS=['tiktok.com','youtube.com','instagram.com'];
-const ALLOWED_DEFAULTS=['pbskids.org','khanacademy.org','coolmathgames.com'];
-let webRulesCache = [];
-
-async function loadWebFilter(){
-  renderDomainList(BLOCKED_DEFAULTS,'blocked','blocked-list');
-  renderDomainList(ALLOWED_DEFAULTS,'allowed','allowed-list');
-  if(!demoModeOn){
-    try{
-      webRulesCache=await G.getWebRules();
-      const blocked=webRulesCache.filter(r=>r.rule_type==='block').map(r=>r.domain);
-      const allowed=webRulesCache.filter(r=>r.rule_type==='allow').map(r=>r.domain);
-      if(blocked.length) renderDomainList(blocked,'blocked','blocked-list');
-      if(allowed.length) renderDomainList(allowed,'allowed','allowed-list');
-    }catch(e){}
-  }
-}
-
-function renderDomainList(domains,type,targetId){
-  const el=document.getElementById(targetId);
-  if(!el) return;
-  el.innerHTML=domains.map(d=>`
-    <div class="domain-item ${type}" data-domain="${d}">
-      <span>${type==='blocked'?'🔴':'🟢'}</span>
-      <span style="flex:1;font-weight:500">${d}</span>
-      <span class="chip ${type==='blocked'?'cr':'cg'}" style="font-size:10px">Both</span>
-      <span class="domain-rm" onclick="removeDomain(this,'${type}')">×</span>
-    </div>`).join('');
-}
-
-async function addBlock(){
-  const inp=document.getElementById('block-inp');
-  const v=inp.value.trim().toLowerCase().replace(/^https?:\/\//,'');
-  if(!v) return;
-  inp.value='';
-  document.getElementById('blocked-list').insertAdjacentHTML('afterbegin',
-    `<div class="domain-item blocked" data-domain="${v}"><span>🔴</span><span style="flex:1;font-weight:500">${v}</span><span class="chip cr" style="font-size:10px">Both</span><span class="domain-rm" onclick="removeDomain(this,'blocked')">×</span></div>`);
-  showToast('🚫 '+v+' blocked on all devices','red');
-  if(!demoModeOn) try{await G.addWebRule(v,'block')}catch(e){}
-}
-
-async function addAllow(){
-  const inp=document.getElementById('allow-inp');
-  const v=inp.value.trim().toLowerCase().replace(/^https?:\/\//,'');
-  if(!v) return;
-  inp.value='';
-  document.getElementById('allowed-list').insertAdjacentHTML('afterbegin',
-    `<div class="domain-item allowed" data-domain="${v}"><span>🟢</span><span style="flex:1;font-weight:500">${v}</span><span class="chip cg" style="font-size:10px">Both</span><span class="domain-rm" onclick="removeDomain(this,'allowed')">×</span></div>`);
-  showToast('✅ '+v+' allowed on all devices','green');
-  if(!demoModeOn) try{await G.addWebRule(v,'allow')}catch(e){}
-}
-
-function removeDomain(el){el.closest('.domain-item').remove()}
-function toggleFcat(el){el.querySelector('.toggle').classList.toggle('on');el.querySelector('.toggle').classList.toggle('on-g')}
-
-// ═══ SCHEDULE ════════════════════════════════════════════════════════════════
-function updateLim(who,v){
-  const h=Math.floor(v), m=Math.round((v-h)*60);
-  document.getElementById(who+'-lim').textContent=h+'h '+m+'m';
-}
-
-// ═══ REPORTS ═════════════════════════════════════════════════════════════════
-async function loadReports(){
-  document.getElementById('r-total').textContent='18.4h';
-  document.getElementById('r-study').textContent='8h 20m';
-  document.getElementById('r-blocks').textContent='34';
-  document.getElementById('r-days').textContent='4/5';
-  document.getElementById('top-apps').innerHTML=`
-    ${topApp('🎮 Minecraft (Michele)','4h 20m','accent',85)}
-    ${topApp('📖 Khan Academy (Nana Yhaa)','3h 50m','green',75)}
-    ${topApp('🎨 Drawing & Art (Michele)','2h 10m','blue',42)}
-    ${topApp('🔢 Prodigy Math (Both)','1h 45m','green',34)}
-    ${topApp('📖 Reading App (Nana Yhaa)','1h 20m','accent',26)}`;
-  if(!demoModeOn) try{
-    const r=await G.getReport();
-    // map real report data to chart
-  }catch(e){}
-}
-function topApp(name,time,col,pct){
-  return`<div style="margin-bottom:11px">
-    <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px"><span>${name}</span><span style="color:var(--${col})">${time}</span></div>
-    <div class="pbar"><div class="pfill" style="width:${pct}%;background:var(--${col})"></div></div>
-  </div>`
-}
-
-// ═══ PAIRING ═════════════════════════════════════════════════════════════════
-async function loadPairing(){
-  const el=document.getElementById('pair-child-select');
-  if(!el) return;
-  if(!children.length){el.innerHTML='<div style="color:var(--t2);font-size:13px;padding:12px">No child profiles yet — go to Settings to add a child.</div>';return}
-  el.innerHTML=children.map((ch,i)=>`
-    <div onclick="selectPairChild('${ch.id}','${ch.name}',this)" style="display:flex;align-items:center;gap:12px;padding:13px;background:var(--s2);border-radius:12px;cursor:pointer;border:2px solid ${i===0?'var(--accent)':'transparent'};transition:border-color .2s">
-      <div class="ch-av ${ch.name==='Michele'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
-      <div><div style="font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--t2)">Age ${ch.age} · ${ch.grade?'Grade '+ch.grade:''}</div></div>
-    </div>`).join('');
-  if(children[0]) selectPairChild(children[0].id,children[0].name,el.children[0]);
-}
-
-function selectPairChild(id,name,el){
-  document.querySelectorAll('#pair-child-select > div').forEach(d=>d.style.borderColor='transparent');
-  el.style.borderColor='var(--accent)';
-  generateQR(id,name);
-}
-
-
-// Inline QR Code generator — no external CDN needed
-function drawQR(container, text, size, darkColor, lightColor) {
-  // Simple QR encoder using a data URL approach via Google Charts API fallback
-  // or draw with canvas using a minimal QR algorithm
+// ── QR ───────────────────────────────────────────────────────────────────────
+function drawQR(container, text) {
+  container.innerHTML = '';
   const img = document.createElement('img');
-  img.style.cssText = `width:${size}px;height:${size}px;border-radius:12px;display:block`;
-  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=${darkColor.replace('#','')}&bgcolor=${lightColor.replace('#','')}`;
+  img.style.cssText = 'width:180px;height:180px;border-radius:12px;display:block';
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}&color=7c6fff&bgcolor=12131f&margin=10`;
   img.onerror = () => {
-    // Final fallback: show the pairing code as text
-    container.innerHTML = `<div style="background:#1a1b25;width:${size}px;height:${size}px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-sizing:border-box">
-      <div style="font-size:11px;color:#8b8fa8;text-align:center;word-break:break-all;font-family:monospace">${text.substring(0,80)}...</div>
-      <div style="font-size:10px;color:#6c63ff;margin-top:8px">Show this code to pair</div>
-    </div>`;
+    container.innerHTML = `<div style="width:180px;height:180px;background:var(--s2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--t2);text-align:center;padding:16px">${text.substring(0,60)}...</div>`;
   };
   container.appendChild(img);
 }
 
-function generateQR(childId,name){
-  const qrdiv=document.getElementById('qrcode');
-  qrdiv.innerHTML='';
-  const code=btoa((localStorage.getItem('g_fid')||'demo')+':'+childId);
-  const server=localStorage.getItem('g_server')||'https://guardian-server-production.up.railway.app';
-  const url=`guardian://pair?code=${code}&server=${encodeURIComponent(server)}&child=${encodeURIComponent(name)}`;
-  document.getElementById('pair-code-str').textContent=url.substring(0,60)+'…';
-  drawQR(qrdiv, url, 180, '#6c63ff', '#111219');
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+function switchTab(mode, el) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('form-login').style.display = mode === 'login' ? '' : 'none';
+  document.getElementById('form-register').style.display = mode === 'register' ? '' : 'none';
 }
 
-function refreshQR(){
-  const first=document.querySelector('#pair-child-select > div[style*="accent"]');
-  if(first) first.click();
-  showToast('QR code refreshed','blue');
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass = document.getElementById('l-pass').value;
+  const err = document.getElementById('login-err');
+  const btn = document.getElementById('login-btn');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'Please enter email and password.'; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Signing in…';
+  try {
+    const r = await fetch(SERVER + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pass }) });
+    const d = await r.json();
+    if (!r.ok) throw d;
+    saveSession(d.token, d.familyId, email);
+    launchApp();
+  } catch(e) { err.textContent = e.error || 'Login failed. Check your email and password.'; }
+  btn.disabled = false; btn.textContent = 'Sign In';
 }
 
-// ═══ SETTINGS ════════════════════════════════════════════════════════════════
-function loadSettings(){
-  const el=document.getElementById('profile-list');
-  if(!el) return;
-  el.innerHTML=children.map(ch=>`
-    <div style="display:flex;align-items:center;gap:12px;padding:13px;background:var(--s2);border-radius:12px">
-      <div class="ch-av ${ch.name==='Michele'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
-      <div style="flex:1"><div style="font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--t2)">Age ${ch.age||'–'} · ${ch.platform||'–'} · ${ch.grade?'Grade '+ch.grade:''}</div></div>
-      <button class="btn bg_" style="padding:6px 11px;font-size:11px">Edit</button>
-    </div>`).join('')||'<div class="empty"><div class="empty-text">No children added yet</div></div>';
-  const srv=localStorage.getItem('g_server')||'guardian-server-production.up.railway.app';
-  const sdsp=document.getElementById('server-display');
-  if(sdsp) sdsp.textContent=srv.replace('http://','');
+async function doRegister() {
+  const name = document.getElementById('r-name').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pass = document.getElementById('r-pass').value;
+  const err = document.getElementById('reg-err');
+  const btn = document.getElementById('reg-btn');
+  err.textContent = '';
+  if (!name || !email || !pass) { err.textContent = 'Please fill all fields.'; return; }
+  if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Creating account…';
+  try {
+    const r = await fetch(SERVER + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password: pass }) });
+    const d = await r.json();
+    if (!r.ok) throw d;
+    saveSession(d.token, d.familyId, email);
+    launchApp();
+  } catch(e) { err.textContent = e.error || 'Registration failed. Please try again.'; }
+  btn.disabled = false; btn.textContent = 'Create Account';
 }
 
-async function pingServer(){
-  showToast('Testing connection…','blue');
-  try{
-    const r=await fetch((localStorage.getItem('g_server')||'https://guardian-server-production.up.railway.app')+'/health');
-    const d=await r.json();
-    showToast('✅ Server online — '+d.connectedDevices+' device(s) connected','green');
-    document.getElementById('server-status-text').textContent='Connected · '+d.connectedDevices+' devices';
-  }catch(e){showToast('❌ Cannot reach server','red')}
+function saveSession(token, familyId, email) {
+  G.token = token; G.familyId = familyId;
+  localStorage.setItem('g_token', token);
+  localStorage.setItem('g_fid', familyId);
+  localStorage.setItem('g_email', email);
 }
 
-function addChildModal(){
-  const name=prompt('Child\'s name:');
-  if(!name) return;
-  const age=prompt('Age:');
-  const grade=prompt('Grade (e.g. 4):');
-  if(!demoModeOn){
-    G.addChild(name,parseInt(age)||7,grade).then(r=>{
-      showToast('✅ '+name+' added! Pairing code ready.','green');
-      loadAll();
-    }).catch(e=>showToast('Error: '+e.error,'red'));
-  } else {
-    showToast('✅ '+name+' added (demo mode)','green');
+function launchDemo() {
+  G.demo = true;
+  G.token = 'demo'; G.familyId = 'demo';
+  G.children = [
+    { id: 'c1', name: 'Michele', age: 9, grade: 'Grade 4', platform: 'android', study_mode_active: 0, device_locked: 0, daily_limit_minutes: 120, today_minutes: 75, bedtime_hour: 21, bedtime_minute: 0, wake_hour: 6, wake_minute: 30, is_online: 1, battery_level: 72 },
+    { id: 'c2', name: 'Nana Yhaa', age: 7, grade: 'Grade 2', platform: 'android', study_mode_active: 1, device_locked: 0, daily_limit_minutes: 90, today_minutes: 45, bedtime_hour: 20, bedtime_minute: 30, wake_hour: 6, wake_minute: 0, is_online: 0, battery_level: 34 }
+  ];
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  renderAll();
+  showToast('Demo mode — all features visible 👀', 'blue');
+}
+
+async function launchApp() {
+  const token = G.token || localStorage.getItem('g_token');
+  const fid = G.familyId || localStorage.getItem('g_fid');
+  const email = localStorage.getItem('g_email') || '';
+  if (!token || !fid) return;
+  G.token = token; G.familyId = fid;
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('account-email').textContent = email;
+  document.getElementById('account-server').textContent = SERVER.replace('https://','');
+  await loadChildren();
+  renderAll();
+  connectWS();
+}
+
+function logout() {
+  G = { token: null, familyId: null, children: [], ws: null, activityLog: [], demo: false };
+  localStorage.removeItem('g_token');
+  localStorage.removeItem('g_fid');
+  localStorage.removeItem('g_email');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+async function api(path, method = 'GET', body) {
+  if (G.demo) return null;
+  const opts = { method, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + G.token } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(SERVER + path, opts);
+  if (!r.ok) throw await r.json();
+  return r.json();
+}
+
+async function loadChildren() {
+  try { G.children = await api('/api/children') || []; } catch(e) { G.children = []; }
+}
+
+async function loadActivity() {
+  try {
+    const data = await api('/api/activity?limit=50');
+    G.activityLog = data || [];
+  } catch(e) { G.activityLog = []; }
+  renderActivity();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderSidebarChildren();
+  renderChildCards();
+  renderStats();
+  renderWeekChart();
+  renderPairList();
+  renderChildSelects();
+  renderChildProfiles();
+  renderRewardChildCards();
+  renderRecentActivity();
+}
+
+const CHILD_COLORS = ['#7c6fff','#ff6eb4','#00e8b0','#4fb3ff','#ffbe4f'];
+const CHILD_EMOJIS = ['👧','👦','🧒','🧒','👶'];
+
+function childColor(i) { return CHILD_COLORS[i % CHILD_COLORS.length]; }
+function childEmoji(i) { return CHILD_EMOJIS[i % CHILD_EMOJIS.length]; }
+
+function renderSidebarChildren() {
+  const el = document.getElementById('child-pills');
+  el.innerHTML = G.children.map((c,i) => `
+    <div class="child-pill">
+      <div class="child-avatar" style="background:${childColor(i)}22">${childEmoji(i)}</div>
+      <div class="child-pill-info">
+        <div class="name">${c.name}</div>
+        <div class="status">${c.age ? 'Age ' + c.age : ''} ${c.grade || ''}</div>
+      </div>
+      ${c.is_online ? '<div class="online-dot"></div>' : '<div class="offline-dot"></div>'}
+    </div>`).join('');
+}
+
+function renderChildCards() {
+  const el = document.getElementById('child-cards');
+  el.innerHTML = G.children.map((c,i) => {
+    const pct = Math.min(100, Math.round((c.today_minutes||0) / (c.daily_limit_minutes||120) * 100));
+    const color = childColor(i);
+    let statusClass = c.device_locked ? 'status-locked' : c.study_mode_active ? 'status-study' : c.is_online ? 'status-online' : 'status-offline';
+    let statusText = c.device_locked ? '🔒 Locked' : c.study_mode_active ? '📚 Study Mode' : c.is_online ? '🟢 Online' : '⚫ Offline';
+    return `
+    <div class="child-card" style="border-top:3px solid ${color}">
+      <div class="child-card-header">
+        <div class="child-card-avatar" style="background:${color}22;font-size:26px">${childEmoji(i)}</div>
+        <div>
+          <div class="child-card-name">${c.name}</div>
+          <div class="child-card-sub">${c.age ? 'Age ' + c.age : ''}${c.grade ? ' · ' + c.grade : ''}</div>
+        </div>
+        <div class="child-card-status">
+          <span class="status-badge ${statusClass}">${statusText}</span>
+          ${c.battery_level != null ? `<span style="font-size:11px;color:var(--t2)">🔋 ${c.battery_level}%</span>` : ''}
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Screen Time Today</span><span>${c.today_minutes||0}m / ${c.daily_limit_minutes||120}m</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pct>85?'var(--red)':pct>60?'var(--amber)':color}"></div></div>
+      </div>
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="toggleStudy('${c.id}',${c.study_mode_active?0:1})">${c.study_mode_active?'📚 Study ON':'📖 Study OFF'}</button>
+        <button class="qa-btn danger" onclick="lockDevice('${c.id}')">${c.device_locked?'🔓 Unlock':'🔒 Lock'}</button>
+        <button class="qa-btn" onclick="sendMessage('${c.id}','${c.name}')">💬 Message</button>
+        <button class="qa-btn" onclick="giveRewardQuick('${c.id}','${c.name}')">🎁 Reward</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="es-icon">👶</div><div class="es-title">No children yet</div><div class="es-desc">Go to Settings to add your children.</div></div>';
+}
+
+function renderStats() {
+  const online = G.children.filter(c => c.is_online).length;
+  const totalMins = G.children.reduce((a,c) => a+(c.today_minutes||0), 0);
+  document.getElementById('stat-children').textContent = G.children.length;
+  document.getElementById('stat-online').textContent = online;
+  document.getElementById('stat-screentime').textContent = totalMins >= 60 ? Math.floor(totalMins/60)+'h '+(totalMins%60)+'m' : totalMins+'m';
+}
+
+function renderWeekChart() {
+  const days = ['M','T','W','T','F','S','S'];
+  const vals = [45, 90, 60, 120, 75, 180, 150];
+  const max = Math.max(...vals);
+  const el = document.getElementById('week-chart');
+  el.innerHTML = days.map((d,i) => `
+    <div class="chart-bar-wrap">
+      <div class="chart-bar" style="height:${Math.round(vals[i]/max*100)}%;background:linear-gradient(to top,var(--accent),var(--a2))"></div>
+      <div class="chart-label">${d}</div>
+    </div>`).join('');
+  const el2 = document.getElementById('report-chart');
+  if(el2) el2.innerHTML = el.innerHTML;
+}
+
+function renderRecentActivity() {
+  const items = G.activityLog.slice(0,5);
+  const el = document.getElementById('recent-activity-list');
+  if (!items.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:13px">No activity yet — devices will appear here once connected.</div>';
+    return;
   }
+  el.innerHTML = items.map(a => `
+    <div class="activity-item">
+      <div class="activity-icon ${a.was_blocked?'activity-blocked':'activity-allowed'}">${a.was_blocked?'🚫':'✅'}</div>
+      <div class="activity-info">
+        <div class="activity-title">${a.app_name||a.domain||a.event_type}</div>
+        <div class="activity-sub">${a.child_name||''} · ${a.block_reason||a.event_type}</div>
+      </div>
+      <div>
+        <span class="activity-badge ${a.was_blocked?'blocked-badge':'allowed-badge'}">${a.was_blocked?'Blocked':'Allowed'}</span>
+        <div class="activity-time" style="margin-top:4px">${timeAgo(a.timestamp)}</div>
+      </div>
+    </div>`).join('');
 }
 
-// ═══ REMOTE ACTIONS ══════════════════════════════════════════════════════════
-function openLock(childId,name){
-  lockTarget={childId,name};
-  document.getElementById('lock-modal-title').textContent='Lock '+name+'\'s Device';
-  document.getElementById('lock-modal').classList.add('open');
-}
-
-function doLock(mins){
-  if(!lockTarget) return;
-  closeModal('lock-modal');
-  if(demoModeOn){
-    const idx=children.findIndex(c=>c.id===lockTarget.childId);
-    if(idx>=0){
-      document.getElementById('slo-'+idx)?.classList.add('show');
-      setTimeout(()=>document.getElementById('slo-'+idx)?.classList.remove('show'),(mins||30)*60*1000);
-    }
-  } else {
-    G.lockDevice(lockTarget.childId, mins||undefined);
-  }
-  showToast('🔒 '+lockTarget.name+'\'s device locked'+(mins?' for '+mins+'min':'')+'!','red');
-}
-
-function toggleStudyAll(){
-  studyAll=!studyAll;
-  const btn=document.getElementById('study-btn');
-  const st=document.getElementById('study-st');
-  btn.classList.toggle('on',studyAll);
-  st.textContent=studyAll?'ON':'OFF';
-  children.forEach(ch=>{
-    ch.study_mode_active=studyAll?1:0;
-    if(!demoModeOn) G.studyMode(ch.id,studyAll);
+function renderActivity() {
+  const list = G.activityLog;
+  const childFilter = document.getElementById('activity-filter-child').value;
+  const typeFilter = document.getElementById('activity-filter-type').value;
+  const filtered = list.filter(a => {
+    if (childFilter && a.child_name !== childFilter) return false;
+    if (typeFilter === 'blocked' && !a.was_blocked) return false;
+    return true;
   });
-  renderDashboard();
-  showToast('📚 Study Mode '+(studyAll?'activated on all tablets!':'deactivated'),'green');
+  const el = document.getElementById('activity-list');
+  if (!filtered.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--t2)">No activity found</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(a => `
+    <div class="activity-item">
+      <div class="activity-icon ${a.was_blocked?'activity-blocked':'activity-allowed'}">${a.was_blocked?'🚫':'✅'}</div>
+      <div class="activity-info">
+        <div class="activity-title">${a.app_name||a.domain||a.event_type}</div>
+        <div class="activity-sub">${a.child_name||''} · ${a.block_reason||a.event_type}</div>
+      </div>
+      <div>
+        <span class="activity-badge ${a.was_blocked?'blocked-badge':'allowed-badge'}">${a.was_blocked?'Blocked':'Allowed'}</span>
+        <div class="activity-time" style="margin-top:4px">${timeAgo(a.timestamp)}</div>
+      </div>
+    </div>`).join('');
 }
 
-function toggleStudyChild(childId,active,name){
-  const ch=children.find(c=>c.id===childId);
-  if(ch) ch.study_mode_active=active;
-  if(!demoModeOn) G.studyMode(childId,!!active);
-  renderDashboard();
-  showToast('📚 Study Mode '+(active?'ON':'OFF')+' for '+name,'green');
+function renderPairList() {
+  const el = document.getElementById('pair-child-list');
+  el.innerHTML = G.children.map((c,i) => `
+    <button class="pair-child-btn" onclick="selectPairChild('${c.id}','${c.name}',this)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">${childEmoji(i)}</span>
+        <div><div class="pname">${c.name}</div><div class="psub">${c.grade||''} · ${c.platform||'android'}</div></div>
+      </div>
+    </button>`).join('') + `<button class="pair-child-btn" onclick="showAddChild();nav('settings',null)"><div class="pname">+ Add new child</div></button>`;
 }
 
-function emergencyLockAll(){
-  const btn=document.getElementById('lock-btn');
-  btn.classList.toggle('on');
-  if(btn.classList.contains('on')){
-    if(!demoModeOn) G.lockAll();
-    document.querySelectorAll('.screen-lock-overlay').forEach(o=>o.classList.add('show'));
-    showToast('🔒 EMERGENCY LOCK — All devices locked!','red');
+function renderChildSelects() {
+  ['app-child-sel','sched-child-sel','reward-child-sel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = G.children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  });
+  const af = document.getElementById('activity-filter-child');
+  if (af) af.innerHTML = '<option value="">All Children</option>' + G.children.map(c => `<option>${c.name}</option>`).join('');
+  loadBlockedApps();
+  loadWebRules();
+}
+
+function renderChildProfiles() {
+  const el = document.getElementById('children-profiles');
+  el.innerHTML = G.children.map((c,i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--b1)">
+      <div style="width:40px;height:40px;border-radius:12px;background:${childColor(i)}22;display:flex;align-items:center;justify-content:center;font-size:20px">${childEmoji(i)}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600">${c.name}</div>
+        <div style="font-size:12px;color:var(--t2)">${c.age?'Age '+c.age:''} ${c.grade||''}</div>
+      </div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editChild('${c.id}')">Edit</button>
+    </div>`).join('') || '<div style="color:var(--t2);font-size:13px;padding:12px 0">No children yet.</div>';
+}
+
+function renderRewardChildCards() {
+  const el = document.getElementById('reward-child-cards');
+  el.innerHTML = G.children.map((c,i) => `
+    <div class="reward-card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="font-size:24px">${childEmoji(i)}</span>
+        <div style="font-family:'Clash Display',sans-serif;font-size:16px;font-weight:700">${c.name}</div>
+      </div>
+      <div class="reward-coins">${Math.floor(Math.random()*50+10)} ⭐</div>
+      <div class="reward-label">Stars earned this week</div>
+      <div style="margin-top:10px;font-size:12px;color:var(--t2)">Next milestone: 50 stars = 30 min extra weekend time 🎉</div>
+    </div>`).join('');
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+async function toggleStudy(childId, active) {
+  try {
+    if (G.ws?.readyState === 1) G.ws.send(JSON.stringify({ type: 'SET_STUDY_MODE', childId, active: !!active }));
+    const c = G.children.find(x => x.id === childId);
+    if (c) c.study_mode_active = active;
+    renderChildCards();
+    showToast(active ? '📚 Study mode ON' : '📖 Study mode OFF', active ? 'blue' : 'green');
+  } catch(e) { showToast('Failed to update', 'red'); }
+}
+
+async function lockDevice(childId) {
+  const c = G.children.find(x => x.id === childId);
+  if (!c) return;
+  if (c.device_locked) {
+    if (G.ws?.readyState === 1) G.ws.send(JSON.stringify({ type: 'UNLOCK_DEVICE', childId }));
+    c.device_locked = 0;
+    showToast(`🔓 ${c.name}'s device unlocked`, 'green');
   } else {
-    children.forEach(ch=>{if(!demoModeOn)G.unlockDevice(ch.id)});
-    document.querySelectorAll('.screen-lock-overlay').forEach(o=>o.classList.remove('show'));
-    showToast('🔓 All devices unlocked','green');
+    if (G.ws?.readyState === 1) G.ws.send(JSON.stringify({ type: 'LOCK_DEVICE', childId }));
+    c.device_locked = 1;
+    showToast(`🔒 ${c.name}'s device locked`, 'amber');
   }
+  renderChildCards();
 }
 
-function openMsg(childId,name){
-  msgTarget={childId,name};
-  document.getElementById('msg-target-name').textContent=name;
-  document.getElementById('msg-text').value='';
-  document.getElementById('msg-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('msg-text').focus(),200);
+async function lockAll() {
+  if (G.ws?.readyState === 1) G.ws.send(JSON.stringify({ type: 'LOCK_ALL' }));
+  G.children.forEach(c => c.device_locked = 1);
+  renderChildCards();
+  showToast('🔒 All devices locked', 'amber');
 }
 
-function doSendMsg(){
-  const txt=document.getElementById('msg-text').value.trim();
-  if(!txt||!msgTarget) return;
-  closeModal('msg-modal');
-  if(!demoModeOn) G.message(msgTarget.childId,txt);
-  showToast('💬 Message sent to '+msgTarget.name+'!','blue');
+async function toggleStudyAll() {
+  const anyOn = G.children.some(c => c.study_mode_active);
+  G.children.forEach(c => {
+    c.study_mode_active = anyOn ? 0 : 1;
+    if (G.ws?.readyState === 1) G.ws.send(JSON.stringify({ type: 'SET_STUDY_MODE', childId: c.id, active: !anyOn }));
+  });
+  document.getElementById('study-label').textContent = anyOn ? 'OFF' : 'ON';
+  document.getElementById('study-all-btn').classList.toggle('on', !anyOn);
+  renderChildCards();
+  showToast(anyOn ? '📖 Study mode OFF for all' : '📚 Study mode ON for all', 'blue');
 }
 
-function quickMsg(txt){document.getElementById('msg-text').value=txt; document.getElementById('msg-text').focus()}
-
-function doScreenshot(childId){
-  if(!demoModeOn) G.screenshot(childId);
-  showToast('📸 Screenshot requested — will appear in Live View','blue');
+function sendMessage(childId, name) {
+  const msg = prompt(`Send a message to ${name}:`);
+  if (!msg) return;
+  if (G.ws?.readyState === 1) G.ws.send(JSON.stringify({ type: 'SEND_MESSAGE', childId, message: msg }));
+  showToast(`💬 Message sent to ${name}`, 'blue');
 }
 
-function screenshotAll(){children.forEach(c=>doScreenshot(c.id))}
-function messageAll(){if(children[0]) openMsg('all','Both Kids')}
-
-function showScreenshot(childId,base64){
-  showToast('📸 Screenshot received!','blue');
-  // Replace mirror screen with actual screenshot
+function giveRewardQuick(childId, name) {
+  nav('rewards', null);
+  setTimeout(() => {
+    document.getElementById('reward-child-sel').value = childId;
+    document.getElementById('reward-reason').focus();
+  }, 300);
 }
 
-function updateDeviceStatus(msg){
-  const ch=children.find(c=>c.id===msg.childId);
-  if(ch){
-    if(msg.battery) ch.battery=msg.battery;
-    if(msg.currentApp) ch.currentApp=msg.currentApp;
-  }
-}
-function handleDeviceStatus(msg){
-  const ch=children.find(c=>c.id===msg.childId);
-  if(ch) ch.online_devices=msg.type==='DEVICE_ONLINE'?1:0;
-  renderDashboard();
+function giveReward() {
+  const childId = document.getElementById('reward-child-sel').value;
+  const mins = document.getElementById('reward-mins').value;
+  const reason = document.getElementById('reward-reason').value.trim();
+  const c = G.children.find(x => x.id === childId);
+  if (!c) return;
+  if (G.ws?.readyState === 1) G.ws.send(JSON.stringify({ type: 'GIVE_REWARD', childId, extraMinutes: parseInt(mins), reason }));
+  const hist = document.getElementById('reward-history');
+  const item = document.createElement('div');
+  item.style.cssText = 'padding:12px;background:var(--s2);border-radius:10px;margin-bottom:8px;font-size:13px';
+  item.innerHTML = `<strong>${c.name}</strong> · +${mins} min · <span style="color:var(--t2)">${reason||'No reason'}</span> <span style="float:right;color:var(--t3)">just now</span>`;
+  if (hist.firstChild?.classList?.contains?.('empty-state')) hist.innerHTML = '';
+  hist.prepend(item);
+  showToast(`🎁 ${mins} min reward sent to ${c.name}!`, 'green');
 }
 
-// ═══ NOTIFICATIONS ═══════════════════════════════════════════════════════════
-let notifTimer;
-function showNotif(msg){
-  const cname=msg.childName||'Child';
-  document.getElementById('np-title').textContent=cname+' — Alert';
-  document.getElementById('np-text').textContent=(msg.appName||msg.domain||'Content')+' was blocked';
-  document.getElementById('np-action-btn').onclick=()=>{
-    const ch=children.find(c=>c.name===cname||c.id===msg.childId);
-    if(ch) openLock(ch.id,cname);
-    dismissNotif();
+async function saveSchedule() {
+  const childId = document.getElementById('sched-child-sel').value;
+  if (!childId || G.demo) return;
+  const data = {
+    bedtime_hour: parseInt(document.getElementById('bedtime-h').value),
+    bedtime_minute: parseInt(document.getElementById('bedtime-m').value),
+    daily_limit_minutes: parseInt(document.getElementById('weekday-limit').value),
   };
-  document.getElementById('notif-popup').classList.add('show');
-  clearTimeout(notifTimer);
-  notifTimer=setTimeout(dismissNotif,7000);
-}
-function dismissNotif(){document.getElementById('notif-popup').classList.remove('show')}
-function toggleNotifPanel(){document.getElementById('notif-dot').classList.remove('show'); alertCount=0; const b=document.getElementById('alert-badge'); if(b) b.style.display='none';}
-
-// ═══ DEMO LIVE EVENTS ════════════════════════════════════════════════════════
-const demoEvents=[
-  {childName:'Michele',appName:'TikTok',wasBlocked:true,blockReason:'Social Media blocked'},
-  {childName:'Nana Yhaa',appName:'Khan Academy Kids',wasBlocked:false},
-  {childName:'Michele',appName:'Minecraft',wasBlocked:false},
-  {childName:'Michele',domain:'youtube.com',wasBlocked:true,blockReason:'Web Filter — Entertainment'},
-  {childName:'Nana Yhaa',domain:'pbskids.org',wasBlocked:false},
-];
-let demoIdx=0;
-function demoLiveEvent(){
-  const e=demoEvents[demoIdx%demoEvents.length]; demoIdx++;
-  prependActivity(e);
-  if(e.wasBlocked) showNotif(e);
+  try {
+    await api(`/api/children/${childId}`, 'PUT', data);
+    const c = G.children.find(x => x.id === childId);
+    if (c) Object.assign(c, data);
+    showToast('Schedule saved ✓', 'green');
+  } catch(e) {}
 }
 
-// ═══ NAVIGATION ══════════════════════════════════════════════════════════════
-const pageTitles={dashboard:'Overview Dashboard',liveview:'📱 Live View — Real-Time',activity:'⚡ Activity Feed',apps:'📦 App Manager',webfilter:'🌐 Web Filter',schedule:'⏰ Schedule & Limits',reports:'📈 Reports',pairing:'🔗 Add Device',settings:'⚙️ Settings'};
-
-function nav(page,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  if(el){document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));el.classList.add('active')}
-  document.getElementById('page-title').textContent=pageTitles[page]||page;
-}
-function filterFeed(f,el){document.querySelectorAll('#page-activity .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
-
-// ═══ MODALS ═══════════════════════════════════════════════════════════════════
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') document.querySelectorAll('.modal-bg.open').forEach(m=>m.classList.remove('open'));
-  if(e.key==='l'||e.key==='L') emergencyLockAll();
-  if(e.key==='s'||e.key==='S') toggleStudyAll();
-});
-document.querySelectorAll('.modal-bg').forEach(mb=>mb.addEventListener('click',e=>{if(e.target===mb)mb.classList.remove('open')}));
-
-// ═══ UTILS ═══════════════════════════════════════════════════════════════════
-function fmtTime(mins){const h=Math.floor(mins/60),m=mins%60;return h?h+'h '+m+'m':m+'m'}
-function fmtAgo(ts){
-  if(!ts) return '';
-  const d=Math.floor((Date.now()-ts*1000)/1000);
-  if(d<60) return d+'s ago';
-  if(d<3600) return Math.floor(d/60)+'m ago';
-  return Math.floor(d/3600)+'h ago';
+function loadSchedule() {
+  const childId = document.getElementById('sched-child-sel').value;
+  const c = G.children.find(x => x.id === childId);
+  if (!c) return;
+  document.getElementById('bedtime-h').value = c.bedtime_hour ?? 21;
+  document.getElementById('bedtime-m').value = c.bedtime_minute ?? 0;
+  document.getElementById('wake-h').value = c.wake_hour ?? 6;
+  document.getElementById('wake-m').value = c.wake_minute ?? 30;
+  const lim = c.daily_limit_minutes ?? 120;
+  document.getElementById('weekday-limit').value = lim;
+  document.getElementById('weekday-val').textContent = Math.floor(lim/60)+'h '+(lim%60)+'m';
 }
 
-let toastT;
-function showToast(msg,type='green'){
-  const existing=document.getElementById('toast');
-  if(existing) existing.remove();
-  const cols={green:'var(--green)',red:'var(--red)',amber:'var(--amber)',blue:'var(--blue)'};
-  const t=document.createElement('div');
-  t.id='toast';
-  t.style.cssText=`position:fixed;bottom:70px;right:24px;background:var(--surface);border:1px solid ${cols[type]};border-left:4px solid ${cols[type]};border-radius:10px;padding:11px 16px;font-size:13px;font-weight:500;box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:9998;max-width:320px;animation:slideIn .35s cubic-bezier(.17,.67,.35,1.3)`;
-  t.textContent=msg;
-  document.body.appendChild(t);
-  clearTimeout(toastT);
-  toastT=setTimeout(()=>t.remove(),3500);
+async function loadBlockedApps() {
+  const childId = document.getElementById('app-child-sel')?.value;
+  if (!childId || G.demo) { renderBlockedApps([]); return; }
+  try { renderBlockedApps(await api(`/api/children/${childId}/apps`) || []); } catch(e) { renderBlockedApps([]); }
 }
 
-// ═══ AUTO-START ═══════════════════════════════════════════════════════════════
-window.addEventListener('load',()=>{
-  if(G.isLoggedIn){ launchApp(); }
-  // else show auth screen (already visible by default)
-});
+function renderBlockedApps(apps) {
+  const el = document.getElementById('blocked-apps-list');
+  if (!el) return;
+  const blocked = apps.filter(a => a.blocked);
+  el.innerHTML = blocked.map(a => `
+    <div class="app-rule-item">
+      <div class="app-rule-icon">📵</div>
+      <div class="app-rule-name" style="flex:1">${a.app_name||a.package_name}</div>
+      <button class="qa-btn danger" onclick="removeAppRule(${a.id})">Remove</button>
+    </div>`).join('') || '<div style="color:var(--t2);font-size:13px;padding:12px 0">No blocked apps yet.</div>';
+}
+
+async function addAppRule() {
+  const childId = document.getElementById('app-child-sel').value;
+  const pkg = document.getElementById('new-app-pkg').value.trim();
+  const name = document.getElementById('new-app-name').value.trim();
+  if (!pkg) { showToast('Enter a package name', 'red'); return; }
+  try {
+    await api(`/api/children/${childId}/apps`, 'POST', { packageName: pkg, appName: name||pkg, blocked: true });
+    document.getElementById('new-app-pkg').value = '';
+    document.getElementById('new-app-name').value = '';
+    loadBlockedApps();
+    showToast(`🚫 ${name||pkg} blocked`, 'amber');
+  } catch(e) { if(G.demo) showToast('Demo: App rule saved ✓','green'); }
+}
+
+async function removeAppRule(id) {
+  try {
+    await api(`/api/app-rules/${id}`, 'DELETE');
+    loadBlockedApps();
+    showToast('App rule removed', 'green');
+  } catch(e) { if(G.demo) showToast('Demo: Rule removed','green'); }
+}
+
+async function loadWebRules() {
+  if (G.demo) { renderWebRules([]); return; }
+  try { renderWebRules(await api('/api/website-rules') || []); } catch(e) { renderWebRules([]); }
+}
+
+function renderWebRules(rules) {
+  const el = document.getElementById('website-rules-list');
+  if (!el) return;
+  el.innerHTML = rules.map(r => `
+    <div class="app-rule-item">
+      <div class="app-rule-icon">🌐</div>
+      <div class="app-rule-name" style="flex:1">${r.domain}</div>
+      <button class="qa-btn danger" onclick="removeWebRule(${r.id})">Remove</button>
+    </div>`).join('') || '<div style="color:var(--t2);font-size:13px;padding:8px 0">No blocked sites yet.</div>';
+}
+
+async function addWebRule() {
+  const domain = document.getElementById('new-domain').value.trim().replace(/^https?:\/\//,'');
+  if (!domain) { showToast('Enter a domain', 'red'); return; }
+  try {
+    await api('/api/website-rules', 'POST', { domain, ruleType: 'block' });
+    document.getElementById('new-domain').value = '';
+    loadWebRules();
+    showToast(`🚫 ${domain} blocked`, 'amber');
+  } catch(e) { if(G.demo) showToast('Demo: Site blocked ✓','amber'); }
+}
+
+async function removeWebRule(id) {
+  try { await api(`/api/website-rules/${id}`, 'DELETE'); loadWebRules(); showToast('Site unblocked', 'green'); }
+  catch(e) { if(G.demo) showToast('Demo: Site unblocked','green'); }
+}
+
+function saveWebCategory(cat, blocked) {
+  showToast(`${blocked?'🚫 Blocking':'✅ Allowing'} ${cat} category`, blocked?'amber':'green');
+}
+
+async function addChild() {
+  const name = document.getElementById('new-child-name').value.trim();
+  const age = document.getElementById('new-child-age').value;
+  const grade = document.getElementById('new-child-grade').value.trim();
+  if (!name) { showToast('Enter a name', 'red'); return; }
+  try {
+    const c = await api('/api/children', 'POST', { name, age: parseInt(age)||null, grade, platform: 'android' });
+    if (c) G.children.push(c);
+    else if (G.demo) G.children.push({ id: 'c'+Date.now(), name, age: parseInt(age)||null, grade, today_minutes: 0, daily_limit_minutes: 120, is_online: 0 });
+    document.getElementById('add-child-form').style.display = 'none';
+    document.getElementById('new-child-name').value = '';
+    document.getElementById('new-child-age').value = '';
+    document.getElementById('new-child-grade').value = '';
+    renderAll();
+    showToast(`👶 ${name} added!`, 'green');
+  } catch(e) { showToast(e.error||'Failed to add child', 'red'); }
+}
+
+function editChild(id) {
+  showToast('Edit feature coming in v3 — modify via Settings', 'blue');
+}
+
+function showAddChild() {
+  document.getElementById('add-child-form').style.display = '';
+  nav('settings', null);
+}
+
+function selectPairChild(childId, name, btn) {
+  document.querySelectorAll('.pair-child-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  generateQR(childId, name);
+}
+
+function generateQR(childId, name) {
+  const qrdiv = document.getElementById('qrcode');
+  qrdiv.innerHTML = '';
+  const code = btoa((G.familyId||'demo') + ':' + childId);
+  const url = `guardian://pair?code=${code}&server=${encodeURIComponent(SERVER)}&child=${encodeURIComponent(name)}`;
+  document.getElementById('pair-code-str').textContent = url.substring(0,80)+'…';
+  drawQR(qrdiv, url);
+}
+
+function refreshQR() {
+  const sel = document.querySelector('.pair-child-btn.selected');
+  if (sel) sel.click();
+  else showToast('Select a child first', 'amber');
+}
+
+// ── WEBSOCKET ─────────────────────────────────────────────────────────────────
+function connectWS() {
+  if (G.demo) return;
+  try {
+    const wsUrl = SERVER.replace('https://','wss://').replace('http://','ws://');
+    G.ws = new WebSocket(wsUrl);
+    G.ws.onopen = () => { G.ws.send(JSON.stringify({ type: 'AUTH', token: G.token })); };
+    G.ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'STATE_SNAPSHOT') {
+        if (msg.children) { G.children = msg.children; renderAll(); }
+      } else if (msg.type === 'ACTIVITY_EVENT') {
+        G.activityLog.unshift(msg);
+        const badge = document.getElementById('activity-badge');
+        let count = parseInt(badge.textContent||0) + 1;
+        badge.textContent = count; badge.style.display = '';
+        document.getElementById('notif-dot').style.display = '';
+        renderRecentActivity();
+        if (msg.wasBlocked) showToast(`🚫 ${msg.childName}: ${msg.appName||msg.domain} blocked`, 'amber');
+      } else if (msg.type === 'DEVICE_ONLINE') {
+        const c = G.children.find(x => x.id === msg.childId);
+        if (c) { c.is_online = 1; renderChildCards(); renderSidebarChildren(); }
+        showToast(`📱 ${msg.childName}'s device is online`, 'green');
+      } else if (msg.type === 'DEVICE_OFFLINE') {
+        const c = G.children.find(x => x.id === msg.childId);
+        if (c) { c.is_online = 0; renderChildCards(); renderSidebarChildren(); }
+      } else if (msg.type === 'DEVICE_HEARTBEAT') {
+        const c = G.children.find(x => x.id === msg.childId);
+        if (c && msg.battery != null) { c.battery_level = msg.battery; renderChildCards(); }
+      } else if (msg.type === 'SCREENSHOT') {
+        if (msg.imageBase64) {
+          const win = window.open();
+          win.document.write(`<img src="data:image/jpeg;base64,${msg.imageBase64}" style="max-width:100%">`);
+        }
+      }
+    };
+    G.ws.onclose = () => { setTimeout(connectWS, 5000); };
+    G.ws.onerror = () => {};
+  } catch(e) {}
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const PAGE_TITLES = {
+  dashboard: ['Dashboard', 'Your family overview at a glance'],
+  activity: ['Activity Feed', 'Real-time log of all device activity'],
+  requests: ['Requests', 'Pending approvals from your children'],
+  apps: ['App Rules', 'Control which apps your children can use'],
+  web: ['Web Filter', 'Block websites and content categories'],
+  schedule: ['Schedule & Limits', 'Bedtime, screen time, and study schedule'],
+  rewards: ['Rewards', 'Reward good behavior with extra screen time'],
+  mood: ['Mood Tracker', 'Emotional wellbeing insights — exclusive to Guardian'],
+  focus: ['Focus Score', 'Weekly focus and productivity rating'],
+  reports: ['Reports', 'Usage summaries and weekly digests'],
+  pair: ['Add Device', 'Pair a tablet to Guardian'],
+  settings: ['Settings', 'Account and children profiles'],
+};
+
+function nav(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const p = document.getElementById('page-' + page);
+  if (p) p.classList.add('active');
+  if (el) el.classList.add('active');
+  const [title, sub] = PAGE_TITLES[page] || [page, ''];
+  document.getElementById('page-title').textContent = title;
+  document.getElementById('page-sub').textContent = sub;
+  document.getElementById('sidebar').classList.remove('open');
+  if (page === 'activity') { loadActivity(); document.getElementById('activity-badge').style.display='none'; }
+  if (page === 'schedule') loadSchedule();
+  if (page === 'apps') loadBlockedApps();
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function timeAgo(ts) {
+  if (!ts) return '';
+  const diff = Math.floor((Date.now() - ts*1000) / 1000);
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+
+function showToast(msg, type = 'green') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const savedToken = localStorage.getItem('g_token');
+const savedFid = localStorage.getItem('g_fid');
+if (savedToken && savedFid) {
+  G.token = savedToken; G.familyId = savedFid;
+  launchApp();
+}
 </script>
 </body>
 </html>
