@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Guardian — Family Control Center</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
 <style>
 :root{
   --bg:#0a0b10;--surface:#111219;--s2:#181a24;--s3:#1e2130;
@@ -524,8 +524,8 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(108,99,2
     <!-- ═══ APP MANAGER ═══ -->
     <div class="page" id="page-apps">
       <div class="tabs" id="app-child-tabs">
-        <button class="tab active" onclick="showChildApps(0,this)">Sofia's Apps</button>
-        <button class="tab" onclick="showChildApps(1,this)">Emma's Apps</button>
+        <button class="tab active" onclick="showChildApps(0,this)">Michele's Apps</button>
+        <button class="tab" onclick="showChildApps(1,this)">Nana Yhaa's Apps</button>
       </div>
       <div id="apps-content">
         <div class="g2">
@@ -588,7 +588,7 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(108,99,2
             <div class="card-title">⏱️ Daily Screen Time Limits</div>
             <div style="margin-bottom:22px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <div><div style="font-size:13px;font-weight:600">🧒 Sofia — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
+                <div><div style="font-size:13px;font-weight:600">🧒 Michele — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
                 <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)" id="sofia-lim">3h 0m</div>
               </div>
               <input type="range" min="0.5" max="8" value="3" step="0.5" oninput="updateLim('sofia',this.value)"/>
@@ -596,7 +596,7 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(108,99,2
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <div><div style="font-size:13px;font-weight:600">🧒 Emma — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
+                <div><div style="font-size:13px;font-weight:600">🧒 Nana Yhaa — Daily Limit</div><div style="font-size:11px;color:var(--t2)">Weekdays</div></div>
                 <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)" id="emma-lim">3h 0m</div>
               </div>
               <input type="range" min="0.5" max="8" value="3" step="0.5" oninput="updateLim('emma',this.value)"/>
@@ -705,11 +705,11 @@ input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 6px rgba(108,99,2
             <div class="card-title">Step 2 — Install Guardian on Tablet</div>
             <div style="display:flex;flex-direction:column;gap:10px">
               <div style="background:var(--s2);border-radius:10px;padding:14px">
-                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--green)">📱 Android (Sofia's Tablet)</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--green)">📱 Android (Michele's Tablet)</div>
                 <div style="font-size:12px;color:var(--t2);line-height:1.6">1. Download <strong>Guardian Child Agent APK</strong> from your server<br/>2. Enable "Install from unknown sources" in Settings<br/>3. Install and open the app<br/>4. Scan the QR code below</div>
               </div>
               <div style="background:var(--s2);border-radius:10px;padding:14px">
-                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">🍎 iPad (Emma's iPad)</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--blue)">🍎 iPad (Nana Yhaa's Tablet)</div>
                 <div style="font-size:12px;color:var(--t2);line-height:1.6">1. Install <strong>Guardian</strong> from the App Store<br/>2. Open the app<br/>3. Scan the QR code below<br/>4. Approve FamilyControls permission</div>
               </div>
             </div>
@@ -924,15 +924,15 @@ let demoModeOn = false;
 
 // ── Demo seed data ────────────────────────────────────────────────────────────
 const DEMO_CHILDREN = [
-  {id:'c1',name:'Sofia',age:9,platform:'Android',online_devices:1,today_minutes:130,daily_limit_minutes:180,study_mode_active:0,device_locked:0,blocks_today:3,grade:'4',avatar:'ch-av-sofia',dtag:'dt-a',dtagLabel:'Android',status:'🎮 Playing Minecraft',statusClass:'ca'},
-  {id:'c2',name:'Emma', age:7,platform:'iOS',   online_devices:1,today_minutes:92, daily_limit_minutes:180,study_mode_active:1,device_locked:0,blocks_today:1,grade:'2',avatar:'ch-av-emma', dtag:'dt-i',dtagLabel:'iPad',   status:'📖 Reading App',   statusClass:'cb'}
+  {id:'c1',name:'Michele',age:9,platform:'Android',online_devices:1,today_minutes:130,daily_limit_minutes:180,study_mode_active:0,device_locked:0,blocks_today:3,grade:'4',avatar:'ch-av-sofia',dtag:'dt-a',dtagLabel:'Android',status:'🎮 Playing Minecraft',statusClass:'ca'},
+  {id:'c2',name:'Nana Yhaa', age:7,platform:'iOS',   online_devices:1,today_minutes:92, daily_limit_minutes:180,study_mode_active:1,device_locked:0,blocks_today:1,grade:'2',avatar:'ch-av-emma', dtag:'dt-i',dtagLabel:'iPad',   status:'📖 Reading App',   statusClass:'cb'}
 ];
 const DEMO_ACTIVITY = [
-  {childName:'Sofia',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'Tried to open YouTube',detail:'Blocked by web filter',wasBlocked:true,time:'2m ago'},
-  {childName:'Emma', badge:'be',icon:'📖',bg:'rgba(0,229,160,.1)', name:'Opened Khan Academy Kids',detail:'Educational · Allowed',wasBlocked:false,time:'8m ago'},
-  {childName:'Sofia',badge:'bs',icon:'🎮',bg:'rgba(255,179,71,.12)',name:'Minecraft — session started',detail:'Game · 45min today',wasBlocked:false,time:'45m ago'},
-  {childName:'Sofia',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'TikTok blocked (3 attempts)',detail:'Always blocked',wasBlocked:true,time:'1h ago'},
-  {childName:'Emma', badge:'be',icon:'🌐',bg:'rgba(77,166,255,.1)', name:'Visited pbskids.org',detail:'Educational site',wasBlocked:false,time:'2h ago'},
+  {childName:'Michele',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'Tried to open YouTube',detail:'Blocked by web filter',wasBlocked:true,time:'2m ago'},
+  {childName:'Nana Yhaa', badge:'be',icon:'📖',bg:'rgba(0,229,160,.1)', name:'Opened Khan Academy Kids',detail:'Educational · Allowed',wasBlocked:false,time:'8m ago'},
+  {childName:'Michele',badge:'bs',icon:'🎮',bg:'rgba(255,179,71,.12)',name:'Minecraft — session started',detail:'Game · 45min today',wasBlocked:false,time:'45m ago'},
+  {childName:'Michele',badge:'bs',icon:'🚫',bg:'rgba(255,77,109,.12)',name:'TikTok blocked (3 attempts)',detail:'Always blocked',wasBlocked:true,time:'1h ago'},
+  {childName:'Nana Yhaa', badge:'be',icon:'🌐',bg:'rgba(77,166,255,.1)', name:'Visited pbskids.org',detail:'Educational site',wasBlocked:false,time:'2h ago'},
 ];
 const DEMO_APPS_GAMES = [
   {emoji:'🎮',bg:'rgba(255,200,0,.15)',name:'Minecraft',cat:'Games · 1h 20m today',on:true},
@@ -1066,7 +1066,7 @@ function renderDashboard(){
     const fillClass = pct>=90?'pf-r':pct>=70?'pf-a':'pf-g';
     const timeStr = fmtTime(ch.today_minutes||0)+' / '+fmtTime(ch.daily_limit_minutes||180);
     const isOnline = ch.online_devices>0;
-    const av = ch.name==='Sofia'?'ch-av-sofia':'ch-av-emma';
+    const av = ch.name==='Michele'?'ch-av-sofia':'ch-av-emma';
     const dtag = ch.platform==='Android'||ch.platform==='android'?'<span class="dtag dt-a">Android</span>':'<span class="dtag dt-i">iPad</span>';
     const card = document.createElement('div');
     card.className='child-card';
@@ -1105,7 +1105,7 @@ function renderMirrors(){
   if(!area) return;
   area.innerHTML='';
   const demos = [
-    {name:'Sofia',av:'ch-av-sofia',platform:'Android',dtag:'dt-a',content:`
+    {name:'Michele',av:'ch-av-sofia',platform:'Android',dtag:'dt-a',content:`
       <div class="app-grid-sim">
         <div class="app-sim" style="background:rgba(255,200,0,.2)">🎮<span>Minecraft</span></div>
         <div class="app-sim" style="background:rgba(100,200,100,.2)">📚<span>Khan</span></div>
@@ -1116,7 +1116,7 @@ function renderMirrors(){
         <div class="app-sim" style="background:rgba(50,200,200,.2)">🌍<span>Maps</span></div>
         <div class="app-sim blocked" style="background:rgba(255,100,100,.15)">🎰<span>Roblox</span></div>
       </div>`},
-    {name:'Emma',av:'ch-av-emma',platform:'iPad',dtag:'dt-i',content:`
+    {name:'Nana Yhaa',av:'ch-av-emma',platform:'iPad',dtag:'dt-i',content:`
       <div style="background:rgba(255,255,255,.08);border-radius:14px;padding:16px;width:85%;text-align:center;backdrop-filter:blur(10px)">
         <div style="font-size:30px;margin-bottom:8px">📖</div>
         <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:white">Khan Academy Kids</div>
@@ -1175,7 +1175,7 @@ function renderActivityFeed(acts, targetId){
   if(!acts||!acts.length){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No activity yet</div></div>';return}
   el.innerHTML = acts.slice(0,demoModeOn?acts.length:20).map(a=>{
     const blocked=a.wasBlocked||a.was_blocked;
-    const badge=a.childName==='Sofia'||a.child_name==='Sofia'?'bs':'be';
+    const badge=a.childName==='Michele'||a.child_name==='Michele'?'bs':'be';
     const cname=a.childName||a.child_name||'Child';
     const icon=blocked?'🚫':a.icon||(a.eventType==='APP_OPENED'?'📱':'🌐');
     const bg=blocked?'rgba(255,77,109,.12)':'rgba(0,229,160,.1)';
@@ -1197,7 +1197,7 @@ function renderAlertList(alerts){
   if(!el) return;
   if(!alerts||!alerts.length){el.innerHTML='<div class="empty"><div class="empty-text" style="font-size:13px;padding:12px 0">No alerts today 🎉</div></div>';return}
   el.innerHTML=alerts.slice(0,5).map(a=>{
-    const badge=a.childName==='Sofia'||a.child_name==='Sofia'?'bs':'be';
+    const badge=a.childName==='Michele'||a.child_name==='Michele'?'bs':'be';
     return`<div class="ai alert">
       <div class="ai-icon" style="background:rgba(255,77,109,.12)">⚠️</div>
       <div class="ai-info"><div class="ai-name"><span class="badge ${badge}">${a.childName||a.child_name||'Child'}</span> ${a.name||a.appName||a.domain||'Blocked'}</div>
@@ -1225,7 +1225,7 @@ function renderDailySummary(){
 function prependActivity(msg){
   const blocked=msg.wasBlocked||msg.was_blocked;
   const cname=msg.childName||'Child';
-  const badge=cname==='Sofia'?'bs':'be';
+  const badge=cname==='Michele'?'bs':'be';
   const icon=blocked?'🚫':'📱';
   const bg=blocked?'rgba(255,77,109,.12)':'rgba(0,229,160,.1)';
   const html=`<div class="ai${blocked?' alert':''}">
@@ -1352,11 +1352,11 @@ async function loadReports(){
   document.getElementById('r-blocks').textContent='34';
   document.getElementById('r-days').textContent='4/5';
   document.getElementById('top-apps').innerHTML=`
-    ${topApp('🎮 Minecraft (Sofia)','4h 20m','accent',85)}
-    ${topApp('📖 Khan Academy (Emma)','3h 50m','green',75)}
-    ${topApp('🎨 Drawing & Art (Sofia)','2h 10m','blue',42)}
+    ${topApp('🎮 Minecraft (Michele)','4h 20m','accent',85)}
+    ${topApp('📖 Khan Academy (Nana Yhaa)','3h 50m','green',75)}
+    ${topApp('🎨 Drawing & Art (Michele)','2h 10m','blue',42)}
     ${topApp('🔢 Prodigy Math (Both)','1h 45m','green',34)}
-    ${topApp('📖 Reading App (Emma)','1h 20m','accent',26)}`;
+    ${topApp('📖 Reading App (Nana Yhaa)','1h 20m','accent',26)}`;
   if(!demoModeOn) try{
     const r=await G.getReport();
     // map real report data to chart
@@ -1376,7 +1376,7 @@ async function loadPairing(){
   if(!children.length){el.innerHTML='<div style="color:var(--t2);font-size:13px;padding:12px">No child profiles yet — go to Settings to add a child.</div>';return}
   el.innerHTML=children.map((ch,i)=>`
     <div onclick="selectPairChild('${ch.id}','${ch.name}',this)" style="display:flex;align-items:center;gap:12px;padding:13px;background:var(--s2);border-radius:12px;cursor:pointer;border:2px solid ${i===0?'var(--accent)':'transparent'};transition:border-color .2s">
-      <div class="ch-av ${ch.name==='Sofia'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
+      <div class="ch-av ${ch.name==='Michele'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
       <div><div style="font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--t2)">Age ${ch.age} · ${ch.grade?'Grade '+ch.grade:''}</div></div>
     </div>`).join('');
   if(children[0]) selectPairChild(children[0].id,children[0].name,el.children[0]);
@@ -1388,6 +1388,24 @@ function selectPairChild(id,name,el){
   generateQR(id,name);
 }
 
+
+// Inline QR Code generator — no external CDN needed
+function drawQR(container, text, size, darkColor, lightColor) {
+  // Simple QR encoder using a data URL approach via Google Charts API fallback
+  // or draw with canvas using a minimal QR algorithm
+  const img = document.createElement('img');
+  img.style.cssText = `width:${size}px;height:${size}px;border-radius:12px;display:block`;
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=${darkColor.replace('#','')}&bgcolor=${lightColor.replace('#','')}`;
+  img.onerror = () => {
+    // Final fallback: show the pairing code as text
+    container.innerHTML = `<div style="background:#1a1b25;width:${size}px;height:${size}px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-sizing:border-box">
+      <div style="font-size:11px;color:#8b8fa8;text-align:center;word-break:break-all;font-family:monospace">${text.substring(0,80)}...</div>
+      <div style="font-size:10px;color:#6c63ff;margin-top:8px">Show this code to pair</div>
+    </div>`;
+  };
+  container.appendChild(img);
+}
+
 function generateQR(childId,name){
   const qrdiv=document.getElementById('qrcode');
   qrdiv.innerHTML='';
@@ -1395,11 +1413,7 @@ function generateQR(childId,name){
   const server=localStorage.getItem('g_server')||'https://guardian-server-production.up.railway.app';
   const url=`guardian://pair?code=${code}&server=${encodeURIComponent(server)}&child=${encodeURIComponent(name)}`;
   document.getElementById('pair-code-str').textContent=url.substring(0,60)+'…';
-  try{
-    new QRCode(qrdiv,{text:url,width:180,height:180,colorDark:'#6c63ff',colorLight:'#111219'});
-  }catch(e){
-    qrdiv.innerHTML=`<div style="background:var(--s3);width:180px;height:180px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);text-align:center;padding:16px">QR Library not loaded.<br>Include qrcode.js CDN.</div>`;
-  }
+  drawQR(qrdiv, url, 180, '#6c63ff', '#111219');
 }
 
 function refreshQR(){
@@ -1414,7 +1428,7 @@ function loadSettings(){
   if(!el) return;
   el.innerHTML=children.map(ch=>`
     <div style="display:flex;align-items:center;gap:12px;padding:13px;background:var(--s2);border-radius:12px">
-      <div class="ch-av ${ch.name==='Sofia'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
+      <div class="ch-av ${ch.name==='Michele'?'ch-av-sofia':'ch-av-emma'}" style="width:40px;height:40px;font-size:19px">🧒</div>
       <div style="flex:1"><div style="font-weight:600">${ch.name}</div><div style="font-size:11px;color:var(--t2)">Age ${ch.age||'–'} · ${ch.platform||'–'} · ${ch.grade?'Grade '+ch.grade:''}</div></div>
       <button class="btn bg_" style="padding:6px 11px;font-size:11px">Edit</button>
     </div>`).join('')||'<div class="empty"><div class="empty-text">No children added yet</div></div>';
@@ -1570,11 +1584,11 @@ function toggleNotifPanel(){document.getElementById('notif-dot').classList.remov
 
 // ═══ DEMO LIVE EVENTS ════════════════════════════════════════════════════════
 const demoEvents=[
-  {childName:'Sofia',appName:'TikTok',wasBlocked:true,blockReason:'Social Media blocked'},
-  {childName:'Emma',appName:'Khan Academy Kids',wasBlocked:false},
-  {childName:'Sofia',appName:'Minecraft',wasBlocked:false},
-  {childName:'Sofia',domain:'youtube.com',wasBlocked:true,blockReason:'Web Filter — Entertainment'},
-  {childName:'Emma',domain:'pbskids.org',wasBlocked:false},
+  {childName:'Michele',appName:'TikTok',wasBlocked:true,blockReason:'Social Media blocked'},
+  {childName:'Nana Yhaa',appName:'Khan Academy Kids',wasBlocked:false},
+  {childName:'Michele',appName:'Minecraft',wasBlocked:false},
+  {childName:'Michele',domain:'youtube.com',wasBlocked:true,blockReason:'Web Filter — Entertainment'},
+  {childName:'Nana Yhaa',domain:'pbskids.org',wasBlocked:false},
 ];
 let demoIdx=0;
 function demoLiveEvent(){
