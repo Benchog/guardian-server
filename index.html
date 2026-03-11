@@ -167,11 +167,12 @@ body{font-family:'Cabinet Grotesk',sans-serif;background:var(--bg);color:var(--t
 /* Settings */
 .settings-section{margin-bottom:28px}
 .settings-section-title{font-family:'Clash Display',sans-serif;font-size:16px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px}
-.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--b1)}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--b1);gap:16px;min-height:52px}
 .setting-row:last-child{border-bottom:none}
-.setting-label{font-size:14px;font-weight:500}
+.setting-row > div:first-child{flex:1;min-width:0}
+.setting-label{font-size:14px;font-weight:500;white-space:nowrap}
 .setting-desc{font-size:12px;color:var(--t2);margin-top:3px}
-.setting-control{flex-shrink:0;margin-left:16px}
+.setting-control{flex-shrink:0;display:flex;align-items:center}
 
 /* Toggle */
 .toggle{position:relative;width:46px;height:26px;cursor:pointer}
@@ -1446,5 +1447,19 @@ if (savedToken && savedFid) {
   launchApp();
 }
 </script>
+
+<!-- Developer Credits Footer -->
+<div id="dev-footer" style="position:fixed;bottom:0;left:240px;right:0;background:rgba(13,14,23,.95);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.06);padding:8px 28px;display:flex;align-items:center;justify-content:space-between;z-index:50;pointer-events:none;">
+  <div style="font-size:11px;color:#555d7a;font-family:'Cabinet Grotesk',sans-serif">
+    🛡️ <strong style="color:#7c6fff">Guardian</strong> &mdash; Family Control Center &nbsp;&middot;&nbsp; Built by <strong style="color:#9097b8">Patrick Benchog</strong>
+  </div>
+  <div style="font-size:11px;color:#555d7a;font-family:'Cabinet Grotesk',sans-serif">
+    &copy; 2026 Patrick Benchog. All rights reserved. &nbsp;&middot;&nbsp; v2.0
+  </div>
+</div>
+<style>
+  .main { padding-bottom: 40px; }
+  @media(max-width:768px){ #dev-footer { left: 0; padding: 6px 16px; } }
+</style>
 </body>
 </html>
