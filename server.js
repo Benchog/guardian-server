@@ -62,6 +62,9 @@ async function initDB() {
       age INTEGER,
       grade TEXT,
       platform TEXT DEFAULT 'android',
+      bedtime_enabled INTEGER DEFAULT 1,
+      wake_hour INTEGER DEFAULT 6,
+      wake_minute INTEGER DEFAULT 30,
       study_mode_active INTEGER DEFAULT 0,
       device_locked INTEGER DEFAULT 0,
       daily_limit_minutes INTEGER DEFAULT 180,
@@ -236,6 +239,10 @@ wss.on('connection', (ws) => {
       }
       if (msg.type === 'UNLOCK_DEVICE') { dbRun('UPDATE children SET device_locked=0 WHERE id=? AND family_id=?', [msg.childId, familyId]); const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]); if (d) sendToDevice(d.id, { type: 'UNLOCK' }); }
       if (msg.type === 'SET_STUDY_MODE') { dbRun('UPDATE children SET study_mode_active=? WHERE id=? AND family_id=?', [msg.active ? 1 : 0, msg.childId, familyId]); const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]); if (d) sendToDevice(d.id, { type: msg.active ? 'STUDY_MODE_ON' : 'STUDY_MODE_OFF' }); }
+      if (msg.type === 'PUSH_RULES') {
+        const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]);
+        if (d) sendToDevice(d.id, { type: 'RULES_SYNC', rules: msg.rules });
+      }
       if (msg.type === 'LOCK_ALL') { dbAll('SELECT id FROM children WHERE family_id=?', [familyId]).forEach(c => { dbRun('UPDATE children SET device_locked=1 WHERE id=?', [c.id]); const d = dbGet('SELECT id FROM devices WHERE child_id=?', [c.id]); if (d) sendToDevice(d.id, { type: 'LOCK' }); }); }
       if (msg.type === 'REQUEST_SCREENSHOT') { const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]); if (d) sendToDevice(d.id, { type: 'TAKE_SCREENSHOT' }); }
       if (msg.type === 'SEND_MESSAGE') { const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]); if (d) sendToDevice(d.id, { type: 'PARENT_MESSAGE', message: msg.message }); }
@@ -340,7 +347,8 @@ app.post('/api/children', authMiddleware, (req, res) => {
 app.put('/api/children/:id', authMiddleware, (req, res) => {
   if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId])) return res.status(404).json({ error: 'Not found' });
   const { name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute } = req.body;
-  dbRun('UPDATE children SET name=COALESCE(?,name),age=COALESCE(?,age),grade=COALESCE(?,grade),daily_limit_minutes=COALESCE(?,daily_limit_minutes),bedtime_hour=COALESCE(?,bedtime_hour),bedtime_minute=COALESCE(?,bedtime_minute) WHERE id=?', [name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, req.params.id]);
+  const { name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, wake_hour, wake_minute, bedtime_enabled } = req.body;
+  dbRun('UPDATE children SET name=COALESCE(?,name),age=COALESCE(?,age),grade=COALESCE(?,grade),daily_limit_minutes=COALESCE(?,daily_limit_minutes),bedtime_hour=COALESCE(?,bedtime_hour),bedtime_minute=COALESCE(?,bedtime_minute),wake_hour=COALESCE(?,wake_hour),wake_minute=COALESCE(?,wake_minute),bedtime_enabled=COALESCE(?,bedtime_enabled) WHERE id=?', [name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, wake_hour, wake_minute, bedtime_enabled != null ? (bedtime_enabled ? 1 : 0) : null, req.params.id]);
   res.json(dbGet('SELECT * FROM children WHERE id=?', [req.params.id]));
 });
 
@@ -430,6 +438,15 @@ app.delete('/api/children/:id', authMiddleware, (req, res) => {
   dbRun('DELETE FROM activity_log WHERE child_id=?', [req.params.id]);
   dbRun('DELETE FROM children WHERE id=?', [req.params.id]);
   res.json({ deleted: true });
+});
+
+app.post('/api/children/:id/reward', authMiddleware, (req, res) => {
+  if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId]))
+    return res.status(404).json({ error: 'Not found' });
+  const { extraMinutes, reason } = req.body;
+  dbRun('INSERT INTO activity_log (family_id,child_id,event_type,app_name,block_reason) VALUES (?,?,?,?,?)',
+    [req.family.familyId, req.params.id, 'REWARD', `+${extraMinutes}min`, reason || '']);
+  res.json({ ok: true });
 });
 
 app.get('/api/website-rules', authMiddleware, (req, res) => res.json(dbAll('SELECT * FROM website_rules WHERE family_id=? ORDER BY created_at DESC', [req.family.familyId])));
