@@ -262,6 +262,35 @@ wss.on('connection', (ws) => {
         dbRun(`INSERT INTO screen_time_usage (child_id,family_id,date,minutes_used) VALUES (?,?,date('now'),?) ON CONFLICT(child_id,date) DO UPDATE SET minutes_used=excluded.minutes_used`, [d.child_id, familyId, msg.minutesUsed]);
         broadcastToParents(familyId, { type: 'SCREEN_TIME_UPDATE', childId: d.child_id, minutesUsed: msg.minutesUsed });
       }
+      if (msg.type === 'UNLOCK_REQUEST') {
+        const d = dbGet('SELECT child_id FROM devices WHERE id=?', [deviceId]);
+        if (!d) return;
+        const child = dbGet('SELECT name FROM children WHERE id=?', [d.child_id]);
+        const reqId = require('crypto').randomBytes(8).toString('hex');
+        dbRun(`INSERT INTO activity_log (family_id,child_id,child_name,event_type,app_name,block_reason) VALUES (?,?,?,?,?,?)`,
+          [familyId, d.child_id, child?.name, 'UNLOCK_REQUEST', 'unlock', msg.reason || 'No reason given']);
+        broadcastToParents(familyId, {
+          type: 'UNLOCK_REQUEST',
+          requestId: reqId,
+          childId: d.child_id,
+          childName: child?.name,
+          reason: msg.reason || 'No reason given',
+          timestamp: Date.now()
+        });
+      }
+      if (msg.type === 'MOOD_CHECKIN') {
+        const d = dbGet('SELECT child_id FROM devices WHERE id=?', [deviceId]);
+        if (!d) return;
+        const child = dbGet('SELECT name FROM children WHERE id=?', [d.child_id]);
+        broadcastToParents(familyId, {
+          type: 'MOOD_CHECKIN',
+          childId: d.child_id,
+          childName: child?.name,
+          emoji: msg.emoji,
+          label: msg.label,
+          timestamp: Date.now()
+        });
+      }
     }
   });
 
