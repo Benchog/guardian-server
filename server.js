@@ -141,6 +141,11 @@ async function initDB() {
   ];
   safeMigrations.forEach(sql => { try { db.run(sql); } catch(e) {} });
 
+  // Clear any stale state commands from queue — RULES_SYNC handles these now
+  try {
+    db.run("DELETE FROM pending_commands WHERE command_type IN ('LOCK','UNLOCK','STUDY_MODE_ON','STUDY_MODE_OFF')");
+  } catch(e) {}
+
   console.log('✅ Database ready');
 }
 
@@ -264,25 +269,38 @@ function broadcastToParents(familyId, msg) {
   conns.forEach(ws => { if (ws.readyState === WebSocket.OPEN) ws.send(data); });
 }
 
+// Commands covered by RULES_SYNC — no need to queue, DB state is the truth
+const RULES_SYNC_COVERS = new Set(['LOCK','UNLOCK','STUDY_MODE_ON','STUDY_MODE_OFF','RULES_SYNC']);
+// One-shot commands that must be queued when device is offline
+const QUEUE_WHEN_OFFLINE = new Set(['PARENT_MESSAGE','GIVE_REWARD','PUSH_RULES']);
+
 function sendToDevice(deviceId, msg) {
   const ws = deviceConnections.get(deviceId);
   if (ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(msg));
     return true;
   }
-  // Device offline — queue the command
-  const dev = dbGet('SELECT child_id, family_id FROM devices WHERE id=?', [deviceId]);
-  if (dev) {
-    // For state commands, replace any existing pending command of same type
-    const existing = dbGet('SELECT id FROM pending_commands WHERE child_id=? AND command_type=?', [dev.child_id, msg.type]);
-    if (existing) {
-      dbRun("UPDATE pending_commands SET payload=?, created_at=strftime('%s','now') WHERE id=?",
-        [JSON.stringify(msg), existing.id]);
-    } else {
-      dbRun('INSERT INTO pending_commands (child_id, family_id, command_type, payload) VALUES (?,?,?,?)',
-        [dev.child_id, dev.family_id, msg.type, JSON.stringify(msg)]);
+  // Device offline
+  // State commands (lock/unlock/study) are NOT queued — RULES_SYNC delivers
+  // correct state when phone reconnects, so queuing these causes conflicts
+  if (RULES_SYNC_COVERS.has(msg.type)) {
+    console.log(`📋 ${msg.type} not queued — RULES_SYNC will deliver correct state on reconnect`);
+    return false;
+  }
+  // One-shot commands get queued
+  if (QUEUE_WHEN_OFFLINE.has(msg.type)) {
+    const dev = dbGet('SELECT child_id, family_id FROM devices WHERE id=?', [deviceId]);
+    if (dev) {
+      const existing = dbGet('SELECT id FROM pending_commands WHERE child_id=? AND command_type=?', [dev.child_id, msg.type]);
+      if (existing) {
+        dbRun("UPDATE pending_commands SET payload=?, created_at=strftime('%s','now') WHERE id=?",
+          [JSON.stringify(msg), existing.id]);
+      } else {
+        dbRun('INSERT INTO pending_commands (child_id, family_id, command_type, payload) VALUES (?,?,?,?)',
+          [dev.child_id, dev.family_id, msg.type, JSON.stringify(msg)]);
+      }
+      console.log(`📦 Queued ${msg.type} for offline device ${deviceId}`);
     }
-    console.log(`📦 Queued ${msg.type} for offline device ${deviceId}`);
   }
   return false;
 }
