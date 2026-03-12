@@ -161,7 +161,7 @@ function dbRun(sql, params = []) {
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '../dashboard')));
 
 function authMiddleware(req, res, next) {
   const h = req.headers.authorization;
@@ -315,14 +315,32 @@ app.put('/api/children/:id', authMiddleware, (req, res) => {
   res.json(dbGet('SELECT * FROM children WHERE id=?', [req.params.id]));
 });
 
-app.post('/api/devices/pair', authMiddleware, (req, res) => {
+app.post('/api/devices/pair', (req, res) => {
   const { childId, deviceName, platform = 'android' } = req.body;
-  const child = dbGet('SELECT * FROM children WHERE id=? AND family_id=?', [childId, req.family.familyId]);
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.replace('Bearer ', '');
+
+  let familyId = null;
+
+  // Accept either a real JWT or the setup token (setup_FAMILYID)
+  if (token.startsWith('setup_')) {
+    familyId = token.replace('setup_', '');
+  } else {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'guardian_patrick_secret_2024_xyz');
+      familyId = decoded.familyId;
+    } catch (e) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+  }
+
+  if (!familyId || !childId) return res.status(400).json({ error: 'familyId and childId required' });
+  const child = dbGet('SELECT * FROM children WHERE id=? AND family_id=?', [childId, familyId]);
   if (!child) return res.status(404).json({ error: 'Child not found' });
   const deviceToken = uuidv4() + '-' + uuidv4();
   const deviceId = uuidv4();
-  dbRun('INSERT OR REPLACE INTO devices (id,family_id,child_id,device_name,platform,device_token) VALUES (?,?,?,?,?,?)', [deviceId, req.family.familyId, childId, deviceName || `${child.name}'s tablet`, platform, deviceToken]);
-  res.json({ deviceToken, deviceId, rules: { studyModeActive: false, deviceLocked: false, dailyLimitMinutes: child.daily_limit_minutes, bedtimeHour: child.bedtime_hour, bedtimeMinute: child.bedtime_minute, wakeHour: child.wake_hour, wakeMinute: child.wake_minute, blockedApps: dbAll('SELECT package_name FROM blocked_apps WHERE child_id=? AND blocked=1', [childId]).map(r => r.package_name), websiteRules: dbAll('SELECT domain,rule_type FROM website_rules WHERE family_id=?', [req.family.familyId]) } });
+  dbRun('INSERT OR REPLACE INTO devices (id,family_id,child_id,device_name,platform,device_token) VALUES (?,?,?,?,?,?)', [deviceId, familyId, childId, deviceName || `${child.name}'s tablet`, platform, deviceToken]);
+  res.json({ deviceToken, deviceId, rules: { studyModeActive: false, deviceLocked: false, dailyLimitMinutes: child.daily_limit_minutes, bedtimeHour: child.bedtime_hour, bedtimeMinute: child.bedtime_minute, wakeHour: child.wake_hour, wakeMinute: child.wake_minute, blockedApps: dbAll('SELECT package_name FROM blocked_apps WHERE child_id=? AND blocked=1', [childId]).map(r => r.package_name), websiteRules: dbAll('SELECT domain,rule_type FROM website_rules WHERE family_id=?', [familyId]) } });
 });
 
 app.get('/api/children/:id/apps', authMiddleware, (req, res) => { if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId])) return res.status(404).json({ error: 'Not found' }); res.json(dbAll('SELECT * FROM blocked_apps WHERE child_id=?', [req.params.id])); });
