@@ -346,7 +346,6 @@ app.post('/api/children', authMiddleware, (req, res) => {
 
 app.put('/api/children/:id', authMiddleware, (req, res) => {
   if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId])) return res.status(404).json({ error: 'Not found' });
-  const { name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute } = req.body;
   const { name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, wake_hour, wake_minute, bedtime_enabled } = req.body;
   dbRun('UPDATE children SET name=COALESCE(?,name),age=COALESCE(?,age),grade=COALESCE(?,grade),daily_limit_minutes=COALESCE(?,daily_limit_minutes),bedtime_hour=COALESCE(?,bedtime_hour),bedtime_minute=COALESCE(?,bedtime_minute),wake_hour=COALESCE(?,wake_hour),wake_minute=COALESCE(?,wake_minute),bedtime_enabled=COALESCE(?,bedtime_enabled) WHERE id=?', [name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, wake_hour, wake_minute, bedtime_enabled != null ? (bedtime_enabled ? 1 : 0) : null, req.params.id]);
   res.json(dbGet('SELECT * FROM children WHERE id=?', [req.params.id]));
