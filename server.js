@@ -348,8 +348,59 @@ app.get('/api/children/:id/apps', authMiddleware, (req, res) => { if (!dbGet('SE
 app.post('/api/children/:id/apps', authMiddleware, (req, res) => {
   if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId])) return res.status(404).json({ error: 'Not found' });
   const { packageName, appName, blocked = true, reason } = req.body;
+  if (!packageName) return res.status(400).json({ error: 'packageName required' });
   dbRun('INSERT INTO blocked_apps (child_id,family_id,package_name,app_name,blocked,reason) VALUES (?,?,?,?,?,?) ON CONFLICT(child_id,package_name) DO UPDATE SET blocked=excluded.blocked,app_name=excluded.app_name,reason=excluded.reason', [req.params.id, req.family.familyId, packageName, appName || packageName, blocked ? 1 : 0, reason || null]);
+  // Push updated rules to the child's device immediately
+  const d = dbGet('SELECT id FROM devices WHERE child_id=?', [req.params.id]);
+  if (d) {
+    const blockedApps = dbAll('SELECT package_name FROM blocked_apps WHERE child_id=? AND blocked=1', [req.params.id]).map(r => r.package_name);
+    sendToDevice(d.id, { type: 'RULES_SYNC', rules: { blockedApps } });
+  }
   res.status(201).json(dbGet('SELECT * FROM blocked_apps WHERE child_id=? AND package_name=?', [req.params.id, packageName]));
+});
+
+// DELETE a specific blocked app by package name
+app.delete('/api/children/:id/apps/:pkg', authMiddleware, (req, res) => {
+  if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId])) return res.status(404).json({ error: 'Not found' });
+  dbRun('DELETE FROM blocked_apps WHERE child_id=? AND package_name=?', [req.params.id, decodeURIComponent(req.params.pkg)]);
+  // Push updated rules to device
+  const d = dbGet('SELECT id FROM devices WHERE child_id=?', [req.params.id]);
+  if (d) {
+    const blockedApps = dbAll('SELECT package_name FROM blocked_apps WHERE child_id=? AND blocked=1', [req.params.id]).map(r => r.package_name);
+    sendToDevice(d.id, { type: 'RULES_SYNC', rules: { blockedApps } });
+  }
+  res.json({ deleted: true });
+});
+
+// Also support legacy /api/app-rules/:id DELETE (dashboard uses this)
+app.delete('/api/app-rules/:id', authMiddleware, (req, res) => {
+  const app_row = dbGet('SELECT * FROM blocked_apps WHERE id=? AND family_id=?', [req.params.id, req.family.familyId]);
+  if (!app_row) return res.status(404).json({ error: 'Not found' });
+  dbRun('DELETE FROM blocked_apps WHERE id=?', [req.params.id]);
+  // Push updated rules to device
+  const d = dbGet('SELECT id FROM devices WHERE child_id=?', [app_row.child_id]);
+  if (d) {
+    const blockedApps = dbAll('SELECT package_name FROM blocked_apps WHERE child_id=? AND blocked=1', [app_row.child_id]).map(r => r.package_name);
+    sendToDevice(d.id, { type: 'RULES_SYNC', rules: { blockedApps } });
+  }
+  res.json({ deleted: true });
+});
+
+// DELETE a child and all their data
+app.delete('/api/children/:id', authMiddleware, (req, res) => {
+  const child = dbGet('SELECT * FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId]);
+  if (!child) return res.status(404).json({ error: 'Not found' });
+  // Disconnect device if online
+  const d = dbGet('SELECT id FROM devices WHERE child_id=?', [req.params.id]);
+  if (d) {
+    try { sendToDevice(d.id, { type: 'PARENT_MESSAGE', message: 'Your profile has been removed by your parent.' }); } catch(e) {}
+    dbRun('DELETE FROM devices WHERE child_id=?', [req.params.id]);
+  }
+  dbRun('DELETE FROM blocked_apps WHERE child_id=?', [req.params.id]);
+  dbRun('DELETE FROM screen_time_usage WHERE child_id=?', [req.params.id]);
+  dbRun('DELETE FROM activity_log WHERE child_id=?', [req.params.id]);
+  dbRun('DELETE FROM children WHERE id=?', [req.params.id]);
+  res.json({ deleted: true });
 });
 
 app.get('/api/website-rules', authMiddleware, (req, res) => res.json(dbAll('SELECT * FROM website_rules WHERE family_id=? ORDER BY created_at DESC', [req.family.familyId])));
