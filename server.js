@@ -115,6 +115,14 @@ async function initDB() {
       block_reason TEXT,
       timestamp INTEGER DEFAULT (strftime('%s','now'))
     );
+    CREATE TABLE IF NOT EXISTS pending_commands (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      child_id TEXT NOT NULL,
+      family_id TEXT NOT NULL,
+      command_type TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      created_at INTEGER DEFAULT (strftime('%s','now'))
+    );
     CREATE TABLE IF NOT EXISTS screen_time_usage (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       child_id TEXT NOT NULL,
@@ -258,8 +266,37 @@ function broadcastToParents(familyId, msg) {
 
 function sendToDevice(deviceId, msg) {
   const ws = deviceConnections.get(deviceId);
-  if (ws?.readyState === WebSocket.OPEN) { ws.send(JSON.stringify(msg)); return true; }
+  if (ws?.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg));
+    return true;
+  }
+  // Device offline — queue the command
+  const dev = dbGet('SELECT child_id, family_id FROM devices WHERE id=?', [deviceId]);
+  if (dev) {
+    // For state commands, replace any existing pending command of same type
+    const existing = dbGet('SELECT id FROM pending_commands WHERE child_id=? AND command_type=?', [dev.child_id, msg.type]);
+    if (existing) {
+      dbRun("UPDATE pending_commands SET payload=?, created_at=strftime('%s','now') WHERE id=?",
+        [JSON.stringify(msg), existing.id]);
+    } else {
+      dbRun('INSERT INTO pending_commands (child_id, family_id, command_type, payload) VALUES (?,?,?,?)',
+        [dev.child_id, dev.family_id, msg.type, JSON.stringify(msg)]);
+    }
+    console.log(`📦 Queued ${msg.type} for offline device ${deviceId}`);
+  }
   return false;
+}
+
+function flushPendingCommands(deviceId, childId, ws) {
+  const pending = dbAll('SELECT * FROM pending_commands WHERE child_id=? ORDER BY created_at ASC', [childId]);
+  if (pending.length === 0) return;
+  console.log(`📤 Flushing ${pending.length} pending commands to device ${deviceId}`);
+  pending.forEach(cmd => {
+    try {
+      ws.send(cmd.payload);
+      dbRun('DELETE FROM pending_commands WHERE id=?', [cmd.id]);
+    } catch(e) { console.error('Flush error:', e.message); }
+  });
 }
 
 wss.on('connection', (ws) => {
@@ -295,6 +332,8 @@ wss.on('connection', (ws) => {
         const blockedApps = dbAll('SELECT package_name FROM blocked_apps WHERE child_id=? AND blocked=1', [device.child_id]).map(r => r.package_name);
         const websiteRules = dbAll('SELECT domain, rule_type FROM website_rules WHERE family_id=?', [familyId]);
         ws.send(JSON.stringify({ type: 'RULES_SYNC', rules: { studyModeActive: !!child?.study_mode_active, deviceLocked: !!child?.device_locked, dailyLimitMinutes: child?.daily_limit_minutes || 180, bedtimeHour: child?.bedtime_hour || 20, bedtimeMinute: child?.bedtime_minute || 30, wakeHour: child?.wake_hour || 7, wakeMinute: child?.wake_minute || 0, blockedApps, websiteRules } }));
+        // Flush any commands queued while device was offline
+        flushPendingCommands(deviceId, device.child_id, ws);
         broadcastToParents(familyId, { type: 'DEVICE_ONLINE', deviceId, childId: device.child_id, childName: child?.name });
       }
       return;
@@ -417,10 +456,30 @@ app.post('/api/children', authMiddleware, (req, res) => {
 });
 
 app.put('/api/children/:id', authMiddleware, (req, res) => {
-  if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId])) return res.status(404).json({ error: 'Not found' });
-  const { name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, wake_hour, wake_minute, bedtime_enabled } = req.body;
-  dbRun('UPDATE children SET name=COALESCE(?,name),age=COALESCE(?,age),grade=COALESCE(?,grade),daily_limit_minutes=COALESCE(?,daily_limit_minutes),bedtime_hour=COALESCE(?,bedtime_hour),bedtime_minute=COALESCE(?,bedtime_minute),wake_hour=COALESCE(?,wake_hour),wake_minute=COALESCE(?,wake_minute),bedtime_enabled=COALESCE(?,bedtime_enabled) WHERE id=?', [name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, wake_hour, wake_minute, bedtime_enabled != null ? (bedtime_enabled ? 1 : 0) : null, req.params.id]);
-  res.json(dbGet('SELECT * FROM children WHERE id=?', [req.params.id]));
+  try {
+    if (!dbGet('SELECT id FROM children WHERE id=? AND family_id=?', [req.params.id, req.family.familyId]))
+      return res.status(404).json({ error: 'Not found' });
+    const { name, age, grade, daily_limit_minutes, bedtime_hour, bedtime_minute, wake_hour, wake_minute, bedtime_enabled } = req.body;
+    const beVal = bedtime_enabled === undefined ? null : (bedtime_enabled ? 1 : 0);
+    dbRun(`UPDATE children SET
+      name=COALESCE(?,name),
+      age=COALESCE(?,age),
+      grade=COALESCE(?,grade),
+      daily_limit_minutes=COALESCE(?,daily_limit_minutes),
+      bedtime_hour=COALESCE(?,bedtime_hour),
+      bedtime_minute=COALESCE(?,bedtime_minute),
+      wake_hour=COALESCE(?,wake_hour),
+      wake_minute=COALESCE(?,wake_minute),
+      bedtime_enabled=COALESCE(?,bedtime_enabled)
+      WHERE id=?`,
+      [name??null, age??null, grade??null, daily_limit_minutes??null,
+       bedtime_hour??null, bedtime_minute??null, wake_hour??null, wake_minute??null,
+       beVal, req.params.id]);
+    res.json(dbGet('SELECT * FROM children WHERE id=?', [req.params.id]));
+  } catch(e) {
+    console.error('PUT children error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.post('/api/devices/pair', (req, res) => {
