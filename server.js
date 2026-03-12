@@ -62,9 +62,6 @@ async function initDB() {
       age INTEGER,
       grade TEXT,
       platform TEXT DEFAULT 'android',
-      bedtime_enabled INTEGER DEFAULT 1,
-      wake_hour INTEGER DEFAULT 6,
-      wake_minute INTEGER DEFAULT 30,
       study_mode_active INTEGER DEFAULT 0,
       device_locked INTEGER DEFAULT 0,
       daily_limit_minutes INTEGER DEFAULT 180,
@@ -127,6 +124,14 @@ async function initDB() {
       UNIQUE(child_id, date)
     );
   `);
+
+  // Safe migrations — add columns that may not exist in older DBs
+  const safeMigrations = [
+    "ALTER TABLE children ADD COLUMN bedtime_enabled INTEGER DEFAULT 1",
+    "ALTER TABLE children ADD COLUMN wake_hour INTEGER DEFAULT 7",
+    "ALTER TABLE children ADD COLUMN wake_minute INTEGER DEFAULT 0",
+  ];
+  safeMigrations.forEach(sql => { try { db.run(sql); } catch(e) {} });
 
   console.log('✅ Database ready');
 }
