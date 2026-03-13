@@ -370,7 +370,18 @@ wss.on('connection', (ws) => {
       if (msg.type === 'SET_STUDY_MODE') { dbRun('UPDATE children SET study_mode_active=? WHERE id=? AND family_id=?', [msg.active ? 1 : 0, msg.childId, familyId]); const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]); if (d) sendToDevice(d.id, { type: msg.active ? 'STUDY_MODE_ON' : 'STUDY_MODE_OFF' }); }
       if (msg.type === 'PUSH_RULES') {
         const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]);
-        if (d) sendToDevice(d.id, { type: 'RULES_SYNC', rules: msg.rules });
+        if (d) {
+          // Merge schedule rules with current lock/study state from DB
+          // so phone never loses its current lock state when schedule is saved
+          const child = dbGet('SELECT * FROM children WHERE id=?', [msg.childId]);
+          const blockedApps = dbAll('SELECT package_name FROM blocked_apps WHERE child_id=? AND blocked=1', [msg.childId]).map(r => r.package_name);
+          const fullRules = Object.assign({
+            deviceLocked: !!child?.device_locked,
+            studyModeActive: !!child?.study_mode_active,
+            blockedApps
+          }, msg.rules);
+          sendToDevice(d.id, { type: 'RULES_SYNC', rules: fullRules });
+        }
       }
       if (msg.type === 'LOCK_ALL') { dbAll('SELECT id FROM children WHERE family_id=?', [familyId]).forEach(c => { dbRun('UPDATE children SET device_locked=1 WHERE id=?', [c.id]); const d = dbGet('SELECT id FROM devices WHERE child_id=?', [c.id]); if (d) sendToDevice(d.id, { type: 'LOCK' }); }); }
       if (msg.type === 'REQUEST_SCREENSHOT') { const d = dbGet('SELECT id FROM devices WHERE child_id=?', [msg.childId]); if (d) sendToDevice(d.id, { type: 'TAKE_SCREENSHOT' }); }
