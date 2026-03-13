@@ -178,8 +178,10 @@ const QUEUE_WHEN_OFFLINE = new Set(['PARENT_MESSAGE','GIVE_REWARD','PUSH_RULES']
 
 async function sendToDevice(deviceId, msg) {
   const ws = deviceConnections.get(deviceId);
+  console.log(`📤 sendToDevice: id=${deviceId} type=${msg.type} wsFound=${!!ws} wsState=${ws?.readyState} totalConns=${deviceConnections.size}`);
   if (ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(msg));
+    console.log(`✅ Message sent to device ${deviceId}`);
     return true;
   }
   if (RULES_SYNC_COVERS.has(msg.type)) {
@@ -304,6 +306,7 @@ wss.on('connection', (ws) => {
     // ── Parent commands ──
     if (!isDevice) {
       if (msg.type === 'LOCK_DEVICE') {
+        console.log(`🔒 LOCK_DEVICE received: childId=${msg.childId} familyId=${familyId}`);
         await supabase.from('children').update({ device_locked: true }).match({ id: msg.childId, family_id: familyId });
         const d = await dbGet('devices', { child_id: msg.childId });
         if (d) {
@@ -433,10 +436,27 @@ app.get('/debug/devices', async (req, res) => {
   try {
     const { data, error } = await supabase.from('devices').select('id, child_id, family_id, device_name, is_online, device_token, created_at').order('created_at', { ascending: false });
     if (error) return res.json({ error: error.message });
-    // Mask token for security — show only first 8 chars
-    const masked = (data || []).map(d => ({ ...d, device_token: d.device_token?.substring(0, 8) + '...' }));
-    res.json({ count: masked.length, devices: masked });
+    const masked = (data || []).map(d => ({
+      ...d,
+      device_token: d.device_token?.substring(0, 8) + '...',
+      ws_connected: deviceConnections.has(d.id)
+    }));
+    res.json({ count: masked.length, total_ws_connections: deviceConnections.size, devices: masked });
   } catch(e) { res.json({ error: e.message }); }
+});
+
+// Test: push a message directly to all connected devices
+app.get('/debug/ping-devices', async (req, res) => {
+  const results = [];
+  for (const [devId, ws] of deviceConnections.entries()) {
+    try {
+      ws.send(JSON.stringify({ type: 'PARENT_MESSAGE', message: '🔔 Test ping from server — connection is working!' }));
+      results.push({ deviceId: devId, sent: true });
+    } catch(e) {
+      results.push({ deviceId: devId, sent: false, error: e.message });
+    }
+  }
+  res.json({ totalConnected: deviceConnections.size, results });
 });
 
 app.post('/api/auth/register', async (req, res) => {
