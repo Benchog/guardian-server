@@ -429,6 +429,16 @@ wss.on('connection', (ws) => {
 // ── REST Routes ───────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', db: 'supabase', connectedDevices: deviceConnections.size, uptime: Math.floor(process.uptime()) }));
 
+app.get('/debug/devices', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('devices').select('id, child_id, family_id, device_name, is_online, device_token, created_at').order('created_at', { ascending: false });
+    if (error) return res.json({ error: error.message });
+    // Mask token for security — show only first 8 chars
+    const masked = (data || []).map(d => ({ ...d, device_token: d.device_token?.substring(0, 8) + '...' }));
+    res.json({ count: masked.length, devices: masked });
+  } catch(e) { res.json({ error: e.message }); }
+});
+
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -530,10 +540,15 @@ app.post('/api/devices/pair', async (req, res) => {
     if (!child) return res.status(404).json({ error: 'Child not found' });
     const deviceToken = uuidv4() + '-' + uuidv4();
     const deviceId = uuidv4();
-    await supabase.from('devices').upsert({
+    // Delete old device record for this child, then insert fresh to avoid token mismatch
+    await supabase.from('devices').delete().match({ child_id: childId });
+    const { error: insertError } = await supabase.from('devices').insert({
       id: deviceId, family_id: familyId, child_id: childId,
-      device_name: deviceName || `${child.name}'s tablet`, platform, device_token: deviceToken
-    }, { onConflict: 'child_id' });
+      device_name: deviceName || `${child.name}'s tablet`, platform,
+      device_token: deviceToken, is_online: false
+    });
+    if (insertError) throw new Error('Device save failed: ' + insertError.message);
+    console.log('Paired device ' + deviceId + ' token:' + deviceToken.substring(0,8));
     const { data: baRows } = await supabase.from('blocked_apps').select('package_name').match({ child_id: childId, blocked: true });
     const { data: wrRows } = await supabase.from('website_rules').select('domain, rule_type').match({ family_id: familyId });
     res.json({
