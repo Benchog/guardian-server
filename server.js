@@ -397,18 +397,11 @@ const DASHBOARD_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta chars
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 // Serve from file if exists (for development), otherwise inline
 app.get('/', (req, res) => {
-  const dashPath = path.join(__dirname, 'dashboard.html');
-  if (fs.existsSync(dashPath)) {
-    res.sendFile(dashPath);
-  } else {
-    res.send('<h1>Guardian Server Running</h1><p>Dashboard not found. Add dashboard.html.</p>');
-  }
+  res.send(DASHBOARD_HTML);
 });
 
 app.get('/dashboard.html', (req, res) => {
-  const dashPath = path.join(__dirname, 'dashboard.html');
-  if (fs.existsSync(dashPath)) res.sendFile(dashPath);
-  else res.redirect('/');
+  res.redirect('/');
 });
 
 // ── HTTP server + WebSocket ───────────────────────────────────────────────────
